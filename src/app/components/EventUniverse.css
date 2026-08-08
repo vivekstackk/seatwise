@@ -1,0 +1,1115 @@
+/* =========================================================
+   SEATWISE — EVENT UNIVERSE
+   Interactive / Cinematic Version
+========================================================= */
+
+.event-universe {
+  position: relative;
+
+  width: 100%;
+  height: 100svh;
+  min-height: 760px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 52% 52%,
+      rgba(58, 43, 31, 0.14),
+      transparent 38%
+    ),
+    #11110f;
+
+  color: #f1efe8;
+
+  isolation: isolate;
+
+  user-select: none;
+
+  /*
+   * Keep drag interaction working.
+   * The individual cards override this with pointer-events:auto.
+   */
+  touch-action: none;
+}
+
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.event-universe__glow {
+  position: absolute;
+  inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      ellipse at 52% 52%,
+      rgba(216, 118, 61, 0.05),
+      transparent 48%
+    );
+}
+
+
+.event-universe__grain {
+  position: absolute;
+  inset: 0;
+
+  z-index: 200;
+
+  pointer-events: none;
+
+  opacity: 0.035;
+
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.55'/%3E%3C/svg%3E");
+}
+
+
+/* =========================================================
+   TOP META
+========================================================= */
+
+.event-universe__meta {
+  position: absolute;
+
+  top: 3.6%;
+
+  z-index: 160;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  font-size: 7px;
+  font-weight: 600;
+
+  line-height: 1;
+
+  letter-spacing: 0.2em;
+
+  color: rgba(241, 239, 232, 0.4);
+
+  text-transform: uppercase;
+
+  pointer-events: none;
+}
+
+
+.event-universe__meta--left {
+  left: 2.2%;
+}
+
+
+.event-universe__meta--center {
+  left: 50%;
+
+  transform: translateX(-50%);
+}
+
+
+.event-universe__meta--right {
+  right: 2.2%;
+}
+
+
+/* =========================================================
+   HEADING
+========================================================= */
+
+.event-universe__heading {
+  position: absolute;
+
+  left: 3%;
+  top: 8%;
+
+  z-index: 145;
+
+  pointer-events: none;
+}
+
+
+.event-universe__eyebrow {
+  display: block;
+
+  margin: 0 0 18px 3px;
+
+  font-size: 7px;
+  font-weight: 600;
+
+  line-height: 1;
+
+  letter-spacing: 0.25em;
+
+  color: rgba(241, 239, 232, 0.43);
+
+  text-transform: uppercase;
+}
+
+
+.event-universe__heading h2 {
+  margin: 0;
+
+  font-size:
+    clamp(
+      76px,
+      8.3vw,
+      156px
+    );
+
+  font-weight: 900;
+
+  line-height: 0.74;
+
+  letter-spacing: -0.075em;
+
+  color: #f1efe8;
+
+  text-transform: uppercase;
+}
+
+
+.event-universe__title-dot {
+  display: inline-block;
+
+  margin-left: 0.04em;
+
+  color: #d8763d;
+}
+
+
+/* =========================================================
+   CENTRAL AXIS
+========================================================= */
+
+.event-universe__axis {
+  position: absolute;
+
+  left: 50%;
+  top: 59%;
+
+  z-index: 8;
+
+  width: 47%;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  display: flex;
+  align-items: center;
+
+  gap: 18px;
+
+  pointer-events: none;
+}
+
+
+.event-universe__axis > span {
+  flex: 1;
+
+  height: 1px;
+
+  background:
+    rgba(241, 239, 232, 0.09);
+}
+
+
+.event-universe__axis p {
+  margin: 0;
+
+  flex-shrink: 0;
+
+  font-size: 6px;
+  font-weight: 500;
+
+  letter-spacing: 0.22em;
+
+  color: rgba(216, 118, 61, 0.46);
+
+  white-space: nowrap;
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   WORLD
+========================================================= */
+
+.event-universe__world {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 20;
+
+  pointer-events: none;
+
+  perspective: 1200px;
+}
+
+
+/* =========================================================
+   EVENT CARD
+========================================================= */
+
+.event-universe__card {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width:
+    clamp(
+      175px,
+      18vw,
+      340px
+    );
+
+  aspect-ratio: 0.72;
+
+  overflow: hidden;
+
+  display: block;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  /*
+   * IMPORTANT:
+   * The TS animation controls transform.
+   * Do NOT add transform here because it would
+   * fight the orbit animation.
+   */
+  pointer-events: auto;
+
+  cursor: pointer;
+
+  transform-origin: center;
+
+  backface-visibility: hidden;
+
+  will-change:
+    transform,
+    opacity,
+    filter;
+
+  /*
+   * Keep the orbit transform completely controlled
+   * by EventUniverse.tsx.
+   */
+  transition:
+    outline-color 300ms ease,
+    box-shadow 450ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      ),
+    filter 450ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      );
+
+  outline: 1px solid transparent;
+
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   CARD IMAGE
+========================================================= */
+
+.event-universe__card img {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  /*
+   * Slight visibility lift.
+   * Keeps the cinematic dark look but prevents
+   * the photographs from feeling too dull.
+   */
+  filter:
+    brightness(1.07)
+    saturate(1.04)
+    contrast(1.02);
+
+  transform: scale(1.025);
+
+  transition:
+    transform 900ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      ),
+    filter 600ms ease;
+}
+
+
+/* =========================================================
+   CARD HOVER IMAGE
+========================================================= */
+
+.event-universe__card:hover img {
+  transform: scale(1.075);
+
+  filter:
+    brightness(1.15)
+    saturate(1.08)
+    contrast(1.03);
+}
+
+
+/* =========================================================
+   CARD SHADE
+========================================================= */
+
+.event-universe__card-shade {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 2;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.015) 25%,
+      rgba(0, 0, 0, 0.08) 60%,
+      rgba(0, 0, 0, 0.58) 100%
+    );
+
+  opacity: 0.48;
+
+  transition:
+    opacity 450ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      );
+}
+
+
+.event-universe__card:hover
+.event-universe__card-shade {
+  opacity: 0.68;
+}
+
+
+/* =========================================================
+   CARD INTERACTIVE STATE
+========================================================= */
+
+.event-universe__card:hover {
+  outline-color:
+    rgba(241, 239, 232, 0.28);
+
+  box-shadow:
+    0 18px 55px
+    rgba(0, 0, 0, 0.28);
+
+  filter:
+    brightness(1.04);
+}
+
+
+/*
+ * Keyboard accessibility.
+ * Does not interfere with mouse interaction.
+ */
+
+.event-universe__card:focus-visible {
+  outline:
+    1px solid
+    #d8763d;
+
+  outline-offset: 6px;
+
+  box-shadow:
+    0 0 0 1px
+    rgba(216, 118, 61, 0.18),
+    0 20px 60px
+    rgba(0, 0, 0, 0.32);
+}
+
+
+/*
+ * Physical click feedback.
+ * The actual orbit transform is still controlled
+ * by the TS component.
+ */
+
+.event-universe__card:active {
+  filter:
+    brightness(0.96);
+}
+
+
+/* =========================================================
+   CARD NUMBER
+========================================================= */
+
+.event-universe__number {
+  position: absolute;
+
+  top: 14px;
+  left: 15px;
+
+  z-index: 4;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  color:
+    rgba(
+      241,
+      239,
+      232,
+      0.65
+    );
+
+  transition:
+    color 300ms ease;
+}
+
+
+.event-universe__card:hover
+.event-universe__number {
+  color:
+    rgba(
+      241,
+      239,
+      232,
+      0.9
+    );
+}
+
+
+/* =========================================================
+   CARD INFORMATION
+========================================================= */
+
+.event-universe__card-info {
+  position: absolute;
+
+  left: 16px;
+  right: 16px;
+  bottom: 15px;
+
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  opacity: 0;
+
+  transform:
+    translateY(8px);
+
+  transition:
+    opacity 350ms ease,
+    transform 500ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      );
+}
+
+
+.event-universe__card:hover
+.event-universe__card-info,
+
+.event-universe__card:focus-visible
+.event-universe__card-info {
+  opacity: 1;
+
+  transform:
+    translateY(0);
+}
+
+
+/* =========================================================
+   CARD TITLE
+========================================================= */
+
+.event-universe__card-title {
+  font-size: 8px;
+  font-weight: 600;
+
+  letter-spacing: 0.17em;
+
+  color:
+    rgba(
+      241,
+      239,
+      232,
+      0.92
+    );
+
+  text-transform: uppercase;
+
+  transition:
+    letter-spacing 350ms ease;
+}
+
+
+.event-universe__card:hover
+.event-universe__card-title {
+  letter-spacing: 0.2em;
+}
+
+
+/* =========================================================
+   CARD MARKER
+========================================================= */
+
+.event-universe__card-arrow {
+  display: block;
+
+  width: 6px;
+  height: 6px;
+
+  flex-shrink: 0;
+
+  background: #f1efe8;
+
+  transition:
+    transform 350ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      ),
+    background-color 300ms ease,
+    opacity 300ms ease;
+}
+
+
+/* Hide the old arrow completely */
+
+.event-universe__card-arrow i {
+  display: none;
+}
+
+
+/* Interactive marker */
+
+.event-universe__card:hover
+.event-universe__card-arrow {
+  transform: scale(1.35);
+
+  background: #d8763d;
+}
+
+
+/* =========================================================
+   BOTTOM LEFT
+========================================================= */
+
+.event-universe__bottom-left {
+  position: absolute;
+
+  left: 2.2%;
+  bottom: 3%;
+
+  z-index: 150;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  pointer-events: none;
+}
+
+
+.event-universe__bottom-left span {
+  font-size: 6px;
+  font-weight: 500;
+
+  letter-spacing: 0.18em;
+
+  color:
+    rgba(
+      241,
+      239,
+      232,
+      0.32
+    );
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   MOVEMENT INDICATOR
+========================================================= */
+
+.event-universe__movement {
+  position: absolute;
+
+  left: 50%;
+  bottom: 2.7%;
+
+  z-index: 150;
+
+  transform:
+    translateX(-50%);
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  pointer-events: none;
+}
+
+
+.event-universe__movement-dot {
+  position: relative;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+
+  border:
+    1px solid
+    rgba(
+      241,
+      239,
+      232,
+      0.22
+    );
+
+  transition:
+    border-color 400ms ease;
+}
+
+
+.event-universe__movement-dot::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #d8763d;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  transition:
+    transform 400ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      ),
+    box-shadow 400ms ease;
+}
+
+
+.event-universe__movement:hover
+.event-universe__movement-dot::after {
+  transform:
+    translate(
+      -50%,
+      -50%
+    )
+    scale(1.25);
+
+  box-shadow:
+    0 0 14px
+    rgba(216, 118, 61, 0.45);
+}
+
+
+.event-universe__movement span {
+  font-size: 6px;
+  font-weight: 600;
+
+  letter-spacing: 0.2em;
+
+  color:
+    rgba(
+      241,
+      239,
+      232,
+      0.3
+    );
+
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   VIEW ALL
+========================================================= */
+
+.event-universe__view-all {
+  position: absolute;
+
+  right: 2.5%;
+  bottom: 3%;
+
+  z-index: 155;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  color:
+    rgba(
+      241,
+      239,
+      232,
+      0.78
+    );
+
+  text-decoration: none;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 0.16em;
+
+  text-transform: uppercase;
+
+  transition:
+    color 300ms ease;
+}
+
+
+.event-universe__view-all:hover {
+  color: #f1efe8;
+}
+
+
+.event-universe__view-arrow {
+  position: relative;
+
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(
+      241,
+      239,
+      232,
+      0.25
+    );
+
+  transition:
+    background-color 300ms ease,
+    transform 400ms
+      cubic-bezier(
+        0.16,
+        1,
+        0.3,
+        1
+      ),
+    border-color 300ms ease;
+}
+
+
+.event-universe__view-arrow i {
+  position: relative;
+
+  width: 8px;
+  height: 1px;
+
+  display: block;
+
+  background: #f1efe8;
+
+  transform:
+    rotate(-45deg);
+
+  transition:
+    background-color 300ms ease;
+}
+
+
+.event-universe__view-arrow i::after {
+  content: "";
+
+  position: absolute;
+
+  right: 0;
+  top: -2px;
+
+  width: 4px;
+  height: 4px;
+
+  border-top:
+    1px solid #f1efe8;
+
+  border-right:
+    1px solid #f1efe8;
+
+  transition:
+    border-color 300ms ease;
+}
+
+
+.event-universe__view-all:hover
+.event-universe__view-arrow {
+  background: #f1efe8;
+
+  border-color: #f1efe8;
+
+  transform:
+    translate(
+      2px,
+      -2px
+    );
+}
+
+
+.event-universe__view-all:hover
+.event-universe__view-arrow i {
+  background: #11110f;
+}
+
+
+.event-universe__view-all:hover
+.event-universe__view-arrow i::after {
+  border-color: #11110f;
+}
+
+
+/* =========================================================
+   CARD MOBILE INTERACTION
+========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+  .event-universe__card-info {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+  .event-universe__card img {
+    filter:
+      brightness(1.06)
+      saturate(1.03)
+      contrast(1.02);
+  }
+
+  .event-universe__card-shade {
+    opacity: 0.62;
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .event-universe {
+    min-height: 700px;
+  }
+
+
+  .event-universe__heading {
+    left: 5%;
+    top: 11%;
+  }
+
+
+  .event-universe__heading h2 {
+    font-size:
+      clamp(
+        64px,
+        15vw,
+        110px
+      );
+  }
+
+
+  .event-universe__card {
+    width:
+      clamp(
+        150px,
+        37vw,
+        240px
+      );
+  }
+
+
+  .event-universe__axis {
+    width: 78%;
+  }
+
+
+  .event-universe__meta--center {
+    display: none;
+  }
+
+
+  .event-universe__movement {
+    display: none;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .event-universe {
+    min-height: 650px;
+  }
+
+
+  .event-universe__heading {
+    top: 12%;
+  }
+
+
+  .event-universe__heading h2 {
+    font-size: 17vw;
+
+    line-height: 0.78;
+  }
+
+
+  .event-universe__eyebrow {
+    margin-bottom: 12px;
+  }
+
+
+  .event-universe__axis {
+    top: 62%;
+
+    width: 88%;
+  }
+
+
+  .event-universe__axis p {
+    font-size: 5px;
+  }
+
+
+  .event-universe__bottom-left {
+    display: none;
+  }
+
+
+  .event-universe__view-all {
+    right: 5%;
+    bottom: 4%;
+  }
+
+
+  .event-universe__card-title {
+    font-size: 7px;
+  }
+
+
+  .event-universe__number {
+    font-size: 7px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+
+  .event-universe__heading h2 {
+    font-size: 18vw;
+  }
+
+
+  .event-universe__card {
+    width:
+      clamp(
+        135px,
+        42vw,
+        190px
+      );
+  }
+
+
+  .event-universe__card-info {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .event-universe__card,
+  .event-universe__card img,
+  .event-universe__card-info,
+  .event-universe__card-arrow,
+  .event-universe__view-arrow,
+  .event-universe__movement-dot::after {
+    transition: none !important;
+  }
+
+}
