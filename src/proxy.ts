@@ -28,5 +28,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/my-tickets"],
+  matcher: ["/my-tickets", "/account"],
 };

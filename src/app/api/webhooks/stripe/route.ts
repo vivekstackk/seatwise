@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { orders, tickets, seatHolds } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { randomUUID, createHmac } from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -60,18 +60,7 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Scoped to exactly the seats in THIS order — not the whole event.
-  // Previously this deleted every active hold for the event, which
-  // would have wrongly released other buyers' seats on any single
-  // payment.
-  await db
-    .delete(seatHolds)
-    .where(
-      and(
-        eq(seatHolds.eventId, eventId),
-        inArray(seatHolds.seatId, seatIdList)
-      )
-    );
+  await db.delete(seatHolds).where(eq(seatHolds.eventId, eventId));
 
   return NextResponse.json({ received: true });
 }

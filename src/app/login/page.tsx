@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn, signUp } from "@/lib/auth-client";
+import { signIn, signUp, useSession } from "@/lib/auth-client";
 
 const authVideos = [
   "/auth%20vid/vid%201.mp4",
@@ -17,6 +17,16 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
+  const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    // Already logged in — visiting /login directly (e.g. via the nav
+    // link) should send them to their account, not show the form
+    // again. This is what was happening before this fix.
+    if (!isPending && session) {
+      router.replace("/account");
+    }
+  }, [isPending, session, router]);
 
   const [activeVideo, setActiveVideo] = useState(0);
   const [nextVideo, setNextVideo] = useState<number | null>(null);
@@ -356,7 +366,9 @@ export default function LoginPage() {
                 return;
               }
 
-              router.push("/events");
+              router.push(
+                mode === "signup" ? "/account?welcome=1" : "/events"
+              );
             }}
           >
 

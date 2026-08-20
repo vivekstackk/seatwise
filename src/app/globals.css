@@ -6696,3 +6696,579 @@ body {
   }
 
 }
+/* =========================================================
+   ACCOUNT DRAWER — SEATWISE EDITORIAL STYLE
+   ========================================================= */
+
+.account-drawer__fields {
+  margin-top: 64px;
+  border-top: 1px solid #c9c6be;
+}
+
+/* ---------------------------------------------------------
+   ACCOUNT FIELD
+   --------------------------------------------------------- */
+
+.account-drawer__field {
+  position: relative;
+  padding: 24px 0 22px;
+  border-bottom: 1px solid #c9c6be;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  transition:
+    padding 250ms ease,
+    background-color 250ms ease;
+}
+
+.account-drawer__field:hover {
+  padding-left: 12px;
+  padding-right: 12px;
+  background: rgba(17, 17, 15, 0.025);
+}
+
+.account-drawer__field span {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #11110f;
+  opacity: 0.45;
+}
+
+.account-drawer__field strong {
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #11110f;
+  word-break: break-word;
+}
+
+/* Small editorial index marker */
+
+.account-drawer__field::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24px;
+
+  width: 3px;
+  height: 3px;
+
+  background: #f26a2e;
+  border-radius: 50%;
+
+  opacity: 0;
+  transform: scale(0);
+
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.account-drawer__field:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ---------------------------------------------------------
+   SUCCESS / WELCOME BANNER
+   --------------------------------------------------------- */
+
+.account-drawer__banner {
+  position: relative;
+
+  background: #11110f;
+  color: #f1efe8;
+
+  padding: 18px 20px;
+
+  font-size: 9px;
+  line-height: 1.6;
+  font-weight: 500;
+
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+
+  margin-bottom: 18px;
+
+  overflow: hidden;
+}
+
+/* Orange accent line */
+
+.account-drawer__banner::before {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 4px;
+
+  background: #f26a2e;
+}
+
+/* ---------------------------------------------------------
+   MY TICKETS BUTTON
+   --------------------------------------------------------- */
+
+.account-drawer__secondary {
+  position: relative;
+
+  width: 100%;
+  min-height: 64px;
+
+  padding: 0 20px;
+
+  border: 1px solid #11110f;
+  background: transparent;
+
+  color: #11110f;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    color 300ms ease,
+    background-color 300ms ease;
+}
+
+/* Sliding background */
+
+.account-drawer__secondary::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: #11110f;
+
+  transform: translateX(-101%);
+
+  transition: transform 350ms cubic-bezier(0.77, 0, 0.175, 1);
+
+  z-index: 0;
+}
+
+.account-drawer__secondary:hover::before {
+  transform: translateX(0);
+}
+
+.account-drawer__secondary span {
+  position: relative;
+  z-index: 1;
+}
+
+.account-drawer__secondary:hover {
+  color: #f1efe8;
+}
+
+.account-drawer__secondary span:last-child {
+  font-size: 15px;
+  transition:
+    transform 300ms ease,
+    color 300ms ease;
+}
+
+.account-drawer__secondary:hover span:last-child {
+  transform: translate(4px, -4px);
+}
+
+/* ---------------------------------------------------------
+   BOTTOM AREA
+   --------------------------------------------------------- */
+
+.ticket-drawer__bottom {
+  margin-top: 48px;
+}
+
+/* ---------------------------------------------------------
+   SIGN OUT BUTTON
+   --------------------------------------------------------- */
+
+.ticket-drawer__bottom .ticket-confirm {
+  position: relative;
+
+  width: 100%;
+  min-height: 64px;
+
+  padding: 0 20px;
+
+  border: none;
+  background: #f26a2e;
+  color: #11110f;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    color 300ms ease,
+    background-color 300ms ease;
+}
+
+.ticket-drawer__bottom .ticket-confirm::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background: #11110f;
+
+  transform: translateY(101%);
+
+  transition: transform 350ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.ticket-drawer__bottom .ticket-confirm:hover::before {
+  transform: translateY(0);
+}
+
+.ticket-drawer__bottom .ticket-confirm span {
+  position: relative;
+  z-index: 1;
+}
+
+.ticket-drawer__bottom .ticket-confirm:hover {
+  color: #f1efe8;
+}
+
+.ticket-drawer__bottom .ticket-confirm span:last-child {
+  font-size: 15px;
+
+  transition:
+    transform 300ms ease;
+}
+
+.ticket-drawer__bottom .ticket-confirm:hover span:last-child {
+  transform: translateX(5px);
+}
+
+/* ---------------------------------------------------------
+   DRAWER TOP
+   --------------------------------------------------------- */
+
+.ticket-drawer__top button {
+  position: relative;
+
+  border: none;
+  background: transparent;
+
+  padding: 6px 0;
+
+  color: #11110f;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  cursor: pointer;
+}
+
+.ticket-drawer__top button::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 2px;
+
+  height: 1px;
+
+  background: #11110f;
+
+  transform: scaleX(0);
+  transform-origin: right;
+
+  transition: transform 250ms ease;
+}
+
+.ticket-drawer__top button:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ---------------------------------------------------------
+   ACCOUNT HERO
+   --------------------------------------------------------- */
+
+.ticket-drawer__event > span {
+  display: block;
+
+  margin-bottom: 24px;
+
+  font-size: 9px;
+  line-height: 1;
+
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  color: #11110f;
+  opacity: 0.4;
+}
+
+.ticket-drawer__event h2 {
+  margin: 0;
+
+  font-size: clamp(64px, 7vw, 100px);
+  line-height: 0.85;
+
+  font-weight: 400;
+  letter-spacing: -0.065em;
+
+  color: #11110f;
+
+  text-transform: uppercase;
+}
+
+.ticket-drawer__event p {
+  margin: 28px 0 0;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  letter-spacing: 0.04em;
+
+  color: #11110f;
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 700px) {
+  .account-drawer__fields {
+    margin-top: 48px;
+  }
+
+  .account-drawer__field {
+    padding: 20px 0;
+  }
+
+  .account-drawer__field:hover {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .ticket-drawer__event h2 {
+    font-size: clamp(56px, 18vw, 86px);
+  }
+
+  .ticket-drawer__bottom {
+    margin-top: 36px;
+  }
+
+  .account-drawer__secondary,
+  .ticket-drawer__bottom .ticket-confirm {
+    min-height: 58px;
+  }
+}
+/* =========================================================
+   SEATWISE — ACCOUNT LOADING STATE
+   Keeps the loading screen consistent with the existing UI.
+   Does NOT affect the account drawer or other pages.
+   ========================================================= */
+
+.account-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #11110f;
+  color: #f1efe8;
+
+  font-family: inherit;
+}
+
+/* Small editorial loading block */
+.account-loading__inner {
+  width: min(320px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Top label */
+.account-loading__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  color: rgba(241, 239, 232, 0.65);
+}
+
+/* Orange status dot */
+.account-loading__dot {
+  width: 6px;
+  height: 6px;
+
+  flex: 0 0 6px;
+
+  border-radius: 50%;
+  background: #f26a2e;
+
+  animation: account-loading-pulse 1.4s ease-in-out infinite;
+}
+
+/* Loading text */
+.account-loading__text {
+  margin: 0;
+
+  font-size: clamp(24px, 4vw, 42px);
+  line-height: 0.95;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+
+  color: #f1efe8;
+}
+
+/* Thin editorial loading line */
+.account-loading__line {
+  position: relative;
+
+  width: 100%;
+  height: 1px;
+
+  overflow: hidden;
+
+  background: rgba(241, 239, 232, 0.14);
+}
+
+.account-loading__line::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  width: 35%;
+
+  background: #f26a2e;
+
+  transform: translateX(-120%);
+
+  animation: account-loading-line 1.4s
+    cubic-bezier(0.65, 0, 0.35, 1)
+    infinite;
+}
+
+/* Small bottom status */
+.account-loading__status {
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+
+  color: rgba(241, 239, 232, 0.35);
+}
+
+/* ---------------------------------------------------------
+   ANIMATION
+   --------------------------------------------------------- */
+
+@keyframes account-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes account-loading-line {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  55% {
+    transform: translateX(280%);
+  }
+
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 600px) {
+  .account-loading__inner {
+    width: calc(100% - 48px);
+  }
+
+  .account-loading__text {
+    font-size: 32px;
+  }
+}
+
+/* ---------------------------------------------------------
+   ACCESSIBILITY
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .account-loading__dot,
+  .account-loading__lin0e::after {
+    animation: none;
+  }
+
+  .account-loading__dot {
+    opacity: 1;
+  }
+
+  .account-loading__line::after {
+    transform: translateX(0);
+  }
+}       
+
+
+
+
+
+

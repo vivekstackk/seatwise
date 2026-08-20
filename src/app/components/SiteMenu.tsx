@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "@/lib/auth-client";
 
-const menuItems = [
+const baseMenuItems = [
   {
     number: "01",
     title: "Home",
@@ -28,12 +29,6 @@ const menuItems = [
     meta: "Your booked experiences",
   },
   {
-    number: "05",
-    title: "Account",
-    href: "/login",
-    meta: "Sign in / Create account",
-  },
-  {
     number: "06",
     title: "About",
     href: "#about",
@@ -44,6 +39,30 @@ const menuItems = [
 export default function SiteMenu() {
   const [open, setOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<number | null>(null);
+  const { data: session } = useSession();
+
+  // "Account" used to always point at /login, even for a signed-in
+  // user, which is why clicking it while logged in showed the login
+  // form again instead of an actual account view.
+  const accountItem = session
+    ? {
+        number: "05",
+        title: "Account",
+        href: "/account",
+        meta: session.user.name || session.user.email,
+      }
+    : {
+        number: "05",
+        title: "Account",
+        href: "/login",
+        meta: "Sign in / Create account",
+      };
+
+  const menuItems = [
+    ...baseMenuItems.slice(0, 4),
+    accountItem,
+    ...baseMenuItems.slice(4),
+  ];
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";

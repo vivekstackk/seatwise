@@ -88,14 +88,15 @@ export default async function EventPage({
           </div>
 
           <TicketDrawer
-  event={{
-    title: event.title,
-    date: event.date,
-    location: event.location,
-    venue: event.venue,
-    price: event.price,
-  }}
-/>
+            event={{
+              id: event.id,
+              title: event.title,
+              date: event.date,
+              location: event.location,
+              venue: event.venue,
+              price: event.price,
+            }}
+          />
         </div>
       </section>
     </main>

@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  holdSeats,
+  releaseSeat,
+  getSeatStatus,
+  createCheckout,
+  getOrderStatus,
+} from "@/lib/db/seats";
 
 type Props = {
   event: {
+    id: string;
     number?: string;
     title: string;
     date: string;
@@ -18,24 +26,10 @@ type Props = {
 const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
 const seatsPerRow = 10;
 
-// Simulated booked seats.
-// Later these can come from Firebase/database.
-const bookedSeats = [
-  "A3",
-  "A4",
-  "B7",
-  "B8",
-  "C2",
-  "C3",
-  "D6",
-  "E5",
-  "F9",
-  "G1",
-  "G2",
-  "H8",
-];
+// bestsellerSeats below is still fake/cosmetic data — it just marks
+// which seats show the "•" bestseller badge, it has no bearing on
+// booking correctness, so it's left as-is for now.
 
-// Simulated bestseller seats.
 const bestsellerSeats = [
   "A1",
   "A2",
@@ -54,10 +48,11 @@ type SeatFilter =
   | "BESTSELLER"
   | "SELECTED";
 
-export default function TicketDrawer({
+function TicketDrawerInner({
   event,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
   const [selectedSeats, setSelectedSeats] =
@@ -70,6 +65,69 @@ export default function TicketDrawer({
     useState<SeatFilter>("ALL");
   const [bookingCode, setBookingCode] =
     useState("");
+  const [heldOrSoldSeats, setHeldOrSoldSeats] =
+    useState<string[]>([]);
+  const [seatError, setSeatError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+
+    getSeatStatus(event.id).then((seats) => {
+      if (!cancelled) setHeldOrSoldSeats(seats);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, event.id]);
+
+  // Handles the redirect back from real Stripe Checkout. Stripe
+  // redirects here immediately on success, but the webhook that
+  // actually converts the hold into a ticket runs as a separate,
+  // slightly-delayed async call — so this polls getOrderStatus
+  // until the ticket really exists, rather than trusting the URL
+  // alone.
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const sessionId = searchParams.get("session_id");
+
+    if (paymentStatus !== "success" || !sessionId) {
+      return;
+    }
+
+    setOpen(true);
+    setPrinting(true);
+    setConfirmed(false);
+
+    let attempts = 0;
+
+    const poll = setInterval(async () => {
+      attempts++;
+
+      const result = await getOrderStatus(sessionId);
+
+      if (result.status === "paid") {
+        clearInterval(poll);
+        setSelectedSeats(result.seats);
+        setBookingCode(sessionId.slice(-10).toUpperCase());
+        setPrinting(false);
+        setConfirmed(true);
+        router.replace(`/events/${event.id}`);
+      } else if (attempts >= 15) {
+        clearInterval(poll);
+        setPrinting(false);
+        setSeatError(
+          "Payment confirmed — ticket is finalizing, check My Tickets shortly."
+        );
+        router.replace(`/events/${event.id}`);
+      }
+    }, 1500);
+
+    return () => clearInterval(poll);
+  }, [searchParams, event.id, router]);
 
   const total =
     selectedSeats.length * event.price;
@@ -93,12 +151,6 @@ export default function TicketDrawer({
     });
   }, [selectedSeats]);
 
-  /*
-   * =====================================================
-   * OPEN BOOKING DRAWER
-   * =====================================================
-   */
-
   const openDrawer = () => {
     setOpen(true);
     setConfirmed(false);
@@ -106,15 +158,7 @@ export default function TicketDrawer({
     setFilter("ALL");
   };
 
-  /*
-   * =====================================================
-   * CLOSE BOOKING DRAWER
-   * =====================================================
-   */
-
   const closeDrawer = () => {
-    // Don't allow accidental closing while
-    // the ticket is printing.
     if (printing) {
       return;
     }
@@ -126,39 +170,66 @@ export default function TicketDrawer({
     setFilter("ALL");
   };
 
-  /*
-   * =====================================================
-   * SEAT SELECTION
-   * =====================================================
-   */
-
-  const toggleSeat = (seat: string) => {
-    if (bookedSeats.includes(seat)) {
+  const toggleSeat = async (seat: string) => {
+    if (heldOrSoldSeats.includes(seat)) {
       return;
     }
 
-    setSelectedSeats((current) => {
-      // Remove selected seat
-      if (current.includes(seat)) {
-        return current.filter(
-          (item) => item !== seat
-        );
+    setSeatError(null);
+
+    if (selectedSeats.includes(seat)) {
+      setSelectedSeats((current) =>
+        current.filter((item) => item !== seat)
+      );
+
+      try {
+        await releaseSeat(event.id, seat);
+      } catch (err) {
+        console.error("Failed to release seat:", err);
       }
 
-      // Maximum 6 seats
-      if (current.length >= 6) {
-        return current;
+      return;
+    }
+
+    if (selectedSeats.length >= 6) {
+      return;
+    }
+
+    setSelectedSeats((current) => [...current, seat]);
+
+    try {
+      const result = await holdSeats(event.id, [seat]);
+
+      if (result.held.includes(seat)) {
+        return;
       }
 
-      return [...current, seat];
-    });
+      setSelectedSeats((current) =>
+        current.filter((item) => item !== seat)
+      );
+
+      setSeatError(
+        result.capExceeded
+          ? "You've reached the 8-seat hold limit for this event."
+          : `Seat ${seat} was just taken by someone else.`
+      );
+
+      const freshStatus = await getSeatStatus(event.id);
+      setHeldOrSoldSeats(freshStatus);
+    } catch (err: any) {
+      setSelectedSeats((current) =>
+        current.filter((item) => item !== seat)
+      );
+
+      if (err?.message === "Not signed in") {
+        router.push("/login");
+        return;
+      }
+
+      console.error("Failed to hold seat:", err);
+      setSeatError("Something went wrong holding that seat. Try again.");
+    }
   };
-
-  /*
-   * =====================================================
-   * FILTER SEATS
-   * =====================================================
-   */
 
   const isVisibleByFilter = (
     seat: string
@@ -178,386 +249,24 @@ export default function TicketDrawer({
     return true;
   };
 
-  /*
-   * =====================================================
-   * SAVE BOOKING
-   *
-   * This happens ONLY after the mock payment
-   * succeeds.
-   *
-   * My Tickets can read this later.
-   * =====================================================
-   */
-
-  const saveBooking = (code: string) => {
-    try {
-      const existingBookings = JSON.parse(
-        localStorage.getItem(
-          "seatwise-bookings"
-        ) || "[]"
-      );
-
-      const booking = {
-        id:
-          typeof crypto !== "undefined" &&
-          typeof crypto.randomUUID === "function"
-            ? crypto.randomUUID()
-            : `${Date.now()}-${Math.random()}`,
-
-        bookingCode: code,
-
-        eventNumber:
-          event.number || "01",
-
-        title: event.title,
-
-        date: event.date,
-
-        location: event.location,
-
-        venue: event.venue,
-
-        time:
-          event.time || "08:00 PM",
-
-        seats: sortedSeats,
-
-        seatCount,
-
-        pricePerSeat: event.price,
-
-        total,
-
-        bookedAt:
-          new Date().toISOString(),
-      };
-
-      const updatedBookings = [
-        ...existingBookings,
-        booking,
-      ];
-
-      localStorage.setItem(
-        "seatwise-bookings",
-        JSON.stringify(updatedBookings)
-      );
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "seatwise:booking-created",
-          {
-            detail: booking,
-          }
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Unable to save booking:",
-        error
-      );
-    }
-  };
-
-  /*
-   * =====================================================
-   * PAYMENT RETURN
-   *
-   * Payment page puts the successful payment
-   * information in sessionStorage.
-   *
-   * When we return here:
-   *
-   * PAYMENT
-   *   ↓
-   * SAME DRAWER
-   *   ↓
-   * PRINTING
-   *   ↓
-   * CONFIRMED
-   * =====================================================
-   */
-
-  useEffect(() => {
-    const paymentSuccess =
-      sessionStorage.getItem(
-        "seatwise-payment-success"
-      );
-
-    if (!paymentSuccess) {
-      return;
-    }
-
-    try {
-      const paymentData =
-        JSON.parse(paymentSuccess);
-
-      if (
-        !paymentData ||
-        !Array.isArray(
-          paymentData.seats
-        ) ||
-        paymentData.seats.length === 0
-      ) {
-        sessionStorage.removeItem(
-          "seatwise-payment-success"
-        );
-
-        return;
-      }
-
-      /*
-       * Restore the seats selected before
-       * payment.
-       */
-      setSelectedSeats(
-        paymentData.seats
-      );
-
-      /*
-       * Restore booking code.
-       */
-      setBookingCode(
-        paymentData.bookingCode || ""
-      );
-
-      /*
-       * Open the existing drawer.
-       */
-      setOpen(true);
-
-      setConfirmed(false);
-
-      /*
-       * Start the SAME existing printing
-       * animation.
-       */
-      setPrinting(true);
-
-      /*
-       * Save booking only after payment.
-       */
-      const restoredSeats =
-        paymentData.seats as string[];
-
-      const restoredTotal =
-        restoredSeats.length *
-        event.price;
-
-      try {
-        const existingBookings =
-          JSON.parse(
-            localStorage.getItem(
-              "seatwise-bookings"
-            ) || "[]"
-          );
-
-        const booking = {
-          id:
-            typeof crypto !== "undefined" &&
-            typeof crypto.randomUUID ===
-              "function"
-              ? crypto.randomUUID()
-              : `${Date.now()}-${Math.random()}`,
-
-          bookingCode:
-            paymentData.bookingCode,
-
-          eventNumber:
-            event.number || "01",
-
-          title: event.title,
-
-          date: event.date,
-
-          location: event.location,
-
-          venue: event.venue,
-
-          time:
-            event.time || "08:00 PM",
-
-          seats: restoredSeats,
-
-          seatCount:
-            restoredSeats.length,
-
-          pricePerSeat: event.price,
-
-          total: restoredTotal,
-
-          bookedAt:
-            new Date().toISOString(),
-        };
-
-        localStorage.setItem(
-          "seatwise-bookings",
-          JSON.stringify([
-            ...existingBookings,
-            booking,
-          ])
-        );
-
-        window.dispatchEvent(
-          new CustomEvent(
-            "seatwise:booking-created",
-            {
-              detail: booking,
-            }
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Unable to save paid booking:",
-          error
-        );
-      }
-
-      /*
-       * IMPORTANT:
-       *
-       * Remove the payment signal immediately.
-       * Otherwise refreshing the page could replay
-       * the printing animation.
-       */
-      sessionStorage.removeItem(
-        "seatwise-payment-success"
-      );
-
-      /*
-       * IMPORTANT:
-       * The printing transition is handled by the
-       * dedicated [printing] effect below.
-       *
-       * Do NOT start the timer here. Keeping the timer
-       * inside the payment-return effect can be unreliable
-       * when Next.js remounts/re-renders this component.
-       */
-    } catch (error) {
-      console.error(
-        "Unable to restore payment:",
-        error
-      );
-
-      sessionStorage.removeItem(
-        "seatwise-payment-success"
-      );
-    }
-  }, [event]);
-
-  /*
-   * =====================================================
-   * PRINTING -> FINAL TICKET
-   *
-   * This is deliberately separated from the payment
-   * return effect.
-   *
-   * Flow:
-   * PAYMENT SUCCESS
-   *   ↓
-   * printing = true
-   *   ↓ 2.8 seconds
-   * printing = false
-   * confirmed = true
-   *
-   * The cleanup only cancels the current timer when
-   * the printing phase actually ends/unmounts.
-   * =====================================================
-   */
-  useEffect(() => {
-    if (!printing) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setPrinting(false);
-      setConfirmed(true);
-    }, 2800);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [printing]);
-
-  /*
-   * =====================================================
-   * CONFIRM BOOKING
-   *
-   * This NO LONGER prints immediately.
-   *
-   * It first sends the user to payment.
-   * =====================================================
-   */
-
-  const confirmBooking = () => {
+  const confirmBooking = async () => {
     if (seatCount === 0) {
       return;
     }
 
-    const code =
-      "SW26-" +
-      Math.random()
-        .toString(36)
-        .substring(2, 8)
-        .toUpperCase();
+    setSeatError(null);
 
-    setBookingCode(code);
-
-    /*
-     * Save temporary booking information.
-     * This is NOT a confirmed booking yet.
-     */
-    sessionStorage.setItem(
-      "seatwise-pending-payment",
-      JSON.stringify({
-        bookingCode: code,
-
-        eventNumber:
-          event.number || "01",
-
-        title: event.title,
-
-        date: event.date,
-
-        location: event.location,
-
-        venue: event.venue,
-
-        time:
-          event.time || "08:00 PM",
-
-        seats: sortedSeats,
-
-        price: event.price,
-
-        total,
-
-        /*
-         * IMPORTANT:
-         * Remember the exact event-detail URL we came from.
-         *
-         * Payment uses this to return to this same event page,
-         * so TicketDrawer can immediately show the printing
-         * animation after payment.
-         */
-        returnPath:
-          typeof window !== "undefined"
-            ? `${window.location.pathname}${window.location.search}${window.location.hash}`
-            : "/events",
-      })
-    );
-
-    /*
-     * Go to payment.
-     */
-    router.push("/payment");
+    try {
+      const result = await createCheckout(event.id);
+      window.location.href = result.url;
+    } catch (err: any) {
+      console.error("Checkout failed:", err);
+      setSeatError("Something went wrong starting checkout. Try again.");
+    }
   };
 
   return (
     <>
-      {/* =====================================================
-          ORIGINAL GET TICKETS BUTTON
-      ===================================================== */}
-
       <button
         type="button"
         className="event-detail__ticket-button"
@@ -572,11 +281,6 @@ export default function TicketDrawer({
         </span>
       </button>
 
-
-      {/* =====================================================
-          OVERLAY
-      ===================================================== */}
-
       <div
         className={`ticket-overlay ${
           open
@@ -586,11 +290,6 @@ export default function TicketDrawer({
         onClick={closeDrawer}
       />
 
-
-      {/* =====================================================
-          BOOKING DRAWER
-      ===================================================== */}
-
       <aside
         className={`ticket-drawer ${
           open
@@ -598,10 +297,6 @@ export default function TicketDrawer({
             : ""
         }`}
       >
-
-        {/* ===================================================
-            PRINTING ANIMATION
-        =================================================== */}
 
         {printing ? (
           <div className="ticket-printing">
@@ -617,7 +312,6 @@ export default function TicketDrawer({
               </span>
 
             </div>
-
 
             <div className="ticket-printing__center">
 
@@ -658,7 +352,6 @@ export default function TicketDrawer({
 
               </div>
 
-
               <div className="ticket-printing__status">
 
                 PRINTING YOUR TICKET
@@ -670,7 +363,6 @@ export default function TicketDrawer({
               </div>
 
             </div>
-
 
             <div className="ticket-printing__bottom">
 
@@ -689,10 +381,6 @@ export default function TicketDrawer({
         ) : !confirmed ? (
 
           <>
-            {/* =================================================
-                BOOKING HEADER
-            ================================================== */}
-
             <div className="ticket-drawer__top">
 
               <span>
@@ -707,11 +395,6 @@ export default function TicketDrawer({
               </button>
 
             </div>
-
-
-            {/* =================================================
-                EVENT TITLE
-            ================================================== */}
 
             <div className="ticket-drawer__event">
 
@@ -731,11 +414,6 @@ export default function TicketDrawer({
               </p>
 
             </div>
-
-
-            {/* =================================================
-                SEAT SELECTION
-            ================================================== */}
 
             <section className="seat-selection">
 
@@ -762,10 +440,18 @@ export default function TicketDrawer({
 
               </div>
 
-
-              {/* =================================================
-                  SEAT FILTERS
-              ================================================== */}
+              {seatError && (
+                <p
+                  style={{
+                    fontSize: "11px",
+                    letterSpacing: "0.05em",
+                    color: "#c0392b",
+                    margin: "0 0 16px",
+                  }}
+                >
+                  {seatError}
+                </p>
+              )}
 
               <div className="seat-filters">
 
@@ -782,7 +468,6 @@ export default function TicketDrawer({
                 >
                   ALL
                 </button>
-
 
                 <button
                   type="button"
@@ -801,7 +486,6 @@ export default function TicketDrawer({
                   BESTSELLER
                 </button>
 
-
                 <button
                   type="button"
                   className={
@@ -818,19 +502,9 @@ export default function TicketDrawer({
 
               </div>
 
-
-              {/* =================================================
-                  STAGE
-              ================================================== */}
-
               <div className="seat-stage">
                 STAGE
               </div>
-
-
-              {/* =================================================
-                  SCROLLABLE SEAT MAP
-              ================================================== */}
 
               <div className="seat-map-scroll">
 
@@ -846,7 +520,6 @@ export default function TicketDrawer({
                       <span className="seat-row__label">
                         {row}
                       </span>
-
 
                       <div className="seat-row__seats">
 
@@ -864,7 +537,7 @@ export default function TicketDrawer({
                               `${row}${seatNumber}`;
 
                             const isBooked =
-                              bookedSeats.includes(
+                              heldOrSoldSeats.includes(
                                 seat
                               );
 
@@ -947,11 +620,6 @@ export default function TicketDrawer({
 
               </div>
 
-
-              {/* =================================================
-                  LEGEND
-              ================================================== */}
-
               <div className="seat-legend">
 
                 <span>
@@ -978,11 +646,6 @@ export default function TicketDrawer({
 
             </section>
 
-
-            {/* =================================================
-                SELECTED SEATS
-            ================================================== */}
-
             <div className="selected-seats">
 
               <div>
@@ -1001,7 +664,6 @@ export default function TicketDrawer({
 
               </div>
 
-
               <div>
 
                 <span>
@@ -1019,11 +681,6 @@ export default function TicketDrawer({
 
             </div>
 
-
-            {/* =================================================
-                TOTAL + CONFIRM
-            ================================================== */}
-
             <div className="ticket-drawer__bottom">
 
               <div className="ticket-total">
@@ -1040,7 +697,6 @@ export default function TicketDrawer({
                 </strong>
 
               </div>
-
 
               <button
                 type="button"
@@ -1063,7 +719,6 @@ export default function TicketDrawer({
 
               </button>
 
-
               <small>
                 MAXIMUM 6 SEATS PER BOOKING
               </small>
@@ -1073,10 +728,6 @@ export default function TicketDrawer({
           </>
 
         ) : (
-
-          /* =====================================================
-             FINAL PRINTED TICKET
-          ====================================================== */
 
           <div className="booking-confirmed">
 
@@ -1095,7 +746,6 @@ export default function TicketDrawer({
 
             </div>
 
-
             <div className="booking-confirmed__message">
 
               <span>
@@ -1103,11 +753,6 @@ export default function TicketDrawer({
               </span>
 
             </div>
-
-
-            {/* =================================================
-                PRINTED TICKET / BILL
-            ================================================== */}
 
             <div className="booking-ticket">
 
@@ -1123,19 +768,14 @@ export default function TicketDrawer({
 
               </div>
 
-
               <span className="booking-ticket__label">
                 LIVE EVENT / ADMIT{" "}
                 {seatCount}
               </span>
 
-
               <h2>
                 {event.title.toUpperCase()}
               </h2>
-
-
-              {/* EVENT DETAILS */}
 
               <div className="booking-ticket__details">
 
@@ -1151,7 +791,6 @@ export default function TicketDrawer({
 
                 </div>
 
-
                 <div>
 
                   <span>
@@ -1163,7 +802,6 @@ export default function TicketDrawer({
                   </strong>
 
                 </div>
-
 
                 <div>
 
@@ -1177,7 +815,6 @@ export default function TicketDrawer({
 
                 </div>
 
-
                 <div>
 
                   <span>
@@ -1190,7 +827,6 @@ export default function TicketDrawer({
                   </strong>
 
                 </div>
-
 
                 <div className="booking-ticket__seats">
 
@@ -1208,22 +844,12 @@ export default function TicketDrawer({
 
               </div>
 
-
-              {/* =================================================
-                  TEAR LINE
-              ================================================== */}
-
               <div className="booking-ticket__tear">
 
                 <i />
                 <i />
 
               </div>
-
-
-              {/* =================================================
-                  BILL / TICKET LOWER SECTION
-              ================================================== */}
 
               <div className="booking-ticket__bottom">
 
@@ -1248,11 +874,6 @@ export default function TicketDrawer({
 
                 </div>
 
-
-                {/* =================================================
-                    FAKE QR / TICKET CODE
-                ================================================== */}
-
                 <div className="booking-ticket__qr">
 
                   <div className="booking-ticket__qr-grid">
@@ -1273,11 +894,6 @@ export default function TicketDrawer({
                 </div>
 
               </div>
-
-
-              {/* =================================================
-                  DONE
-              ================================================== */}
 
               <button
                 type="button"
@@ -1301,5 +917,20 @@ export default function TicketDrawer({
 
       </aside>
     </>
+  );
+}
+
+export default function TicketDrawer(props: Props) {
+  return (
+    <Suspense
+      fallback={
+        <button type="button" className="event-detail__ticket-button">
+          <span>GET TICKETS</span>
+          <span className="event-detail__ticket-arrow">↗</span>
+        </button>
+      }
+    >
+      <TicketDrawerInner {...props} />
+    </Suspense>
   );
 }
