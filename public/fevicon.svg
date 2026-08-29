@@ -1,9 +1,10 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="14" fill="#111111"></rect>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#11110F"></rect>
 
-  <!-- Stylized S -->
-  <path d="M43 17C39.8 14.5 35.8 13 31.5 13C22.5 13 17 17.2 17 24.1C17 30.4 21.4 33.4 31.8 35.6C38.3 37 40.5 38.5 40.5 41.6C40.5 44.8 37.7 47 32.4 47C27.4 47 23.2 45.1 19.8 41.8" stroke="#F1EEE7" stroke-width="7" stroke-linecap="square" stroke-linejoin="miter"></path>
+  <path d="M46 17H25C19 17 16 20.5 16 25
+       C16 29.5 19 32 25 32H37
+       C41.5 32 44 34.5 44 38.5
+       C44 42.5 41 47 35 47H16" fill="none" stroke="#F1EFE8" stroke-width="7" stroke-linecap="square" stroke-linejoin="miter"></path>
 
-  <!-- Seatwise orange signature -->
-  <circle cx="46.5" cy="46.5" r="4.5" fill="#E8753D"></circle>
+  <rect x="45" y="45" width="6" height="6" fill="#E8753D"></rect>
 </svg>
