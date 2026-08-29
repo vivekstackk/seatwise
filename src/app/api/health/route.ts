@@ -23,6 +23,13 @@ export const dynamic = "force-dynamic";
  * on sign-up, and absent Google credentials show up as a sign-in button
  * that refuses. Comparing `authOrigin` against the address in the
  * browser bar diagnoses the first in one glance.
+ *
+ * `googleRedirectUri` is the exact string this deployment sends to
+ * Google as `redirect_uri`. Google's `Error 400: redirect_uri_mismatch`
+ * means it is not registered on the OAuth client verbatim — one
+ * character, one trailing slash or http-vs-https is enough — so having
+ * the literal value to paste removes the guesswork. It is derived from
+ * the origin and contains no credential.
  */
 const REQUIRED_ENV = [
   "DATABASE_URL",
@@ -50,6 +57,7 @@ export async function GET() {
         process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
           ? "configured"
           : "disabled",
+      googleRedirectUri: `${getAppOrigin()}/api/auth/callback/google`,
     },
     {
       status: missingEnv.length === 0 ? 200 : 503,

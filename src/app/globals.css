@@ -3846,6 +3846,122 @@ body {
 
 
 /* ============================================================
+   PAID BUT NOT ISSUED YET
+   ------------------------------------------------------------
+   Shown when the Stripe redirect came back but the webhook that
+   turns the hold into a ticket has not been processed. A real
+   terminal state with actions, not a stuck animation.
+============================================================ */
+
+.ticket-pending {
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-pending__body {
+  flex: 1;
+
+  padding: 60px 40px 40px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.ticket-pending__eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  opacity: 0.55;
+}
+
+.ticket-pending__body strong {
+  margin-top: 18px;
+
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.ticket-pending__body p {
+  margin-top: 22px;
+  max-width: 42ch;
+
+  font-size: 11px;
+  line-height: 1.9;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+}
+
+.ticket-pending__ref {
+  margin-top: 26px;
+  border: 1px solid currentColor;
+  padding: 8px 14px;
+
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  opacity: 0.6;
+}
+
+.ticket-pending__error {
+  margin-top: 20px;
+
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  opacity: 0.85;
+}
+
+.ticket-pending__actions {
+  margin-top: auto;
+  padding-top: 40px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.ticket-pending__actions button,
+.ticket-pending__link {
+  border: 1px solid currentColor;
+  padding: 14px 22px;
+
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  cursor: pointer;
+
+  transition: opacity 0.2s ease;
+}
+
+.ticket-pending__actions button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.ticket-pending__done {
+  border-color: #111;
+  background: #111;
+  color: #f2f0e8;
+}
+
+@media (max-width: 720px) {
+  .ticket-pending__body {
+    padding: 40px 22px 30px;
+  }
+
+  .ticket-pending__body strong {
+    font-size: 26px;
+  }
+}
+
+
+/* ============================================================
    CONFIRMED BOOKING
 ============================================================ */
 

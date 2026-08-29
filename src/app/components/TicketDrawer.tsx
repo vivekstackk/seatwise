@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   holdSeats,
@@ -89,6 +90,13 @@ function TicketDrawerInner({
     useState<string | null>(null);
   const [issuedTickets, setIssuedTickets] =
     useState<TicketDetail[]>([]);
+  // Set when the payment redirect came back but no ticket exists yet —
+  // holds the Stripe session id so the user can re-check without
+  // reloading. Distinct from `confirmed`: money moved, ticket did not.
+  const [ticketPending, setTicketPending] =
+    useState<string | null>(null);
+  const [pendingChecking, setPendingChecking] =
+    useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -134,13 +142,35 @@ function TicketDrawerInner({
     }
 
     let attempts = 0;
+    let stopped = false;
+
+    // The webhook is a separate inbound call from Stripe, not part of the
+    // redirect. On a cold-started free instance it can land tens of
+    // seconds after the browser is already back here, so 22.5s of
+    // patience (the old 15 attempts) gave up while it was still in
+    // flight. 40 x 1.5s = 60s.
+    const maxAttempts = 40;
 
     const poll = setInterval(async () => {
+      if (stopped) {
+        return;
+      }
+
       attempts++;
 
-      const result = await getOrderStatus(sessionId);
+      let result: Awaited<ReturnType<typeof getOrderStatus>> | null = null;
 
-      if (result.status === "paid") {
+      try {
+        result = await getOrderStatus(sessionId);
+      } catch (err) {
+        // A throw here used to kill the callback before it could reach
+        // the give-up branch below, so one failed round trip left the
+        // printing animation running forever with no way out.
+        console.error("Order status lookup failed:", err);
+      }
+
+      if (result?.status === "paid") {
+        stopped = true;
         clearInterval(poll);
         setSelectedSeats(result.seats);
         setIssuedTickets(result.ticketsDetail);
@@ -148,18 +178,59 @@ function TicketDrawerInner({
         setPrinting(false);
         setConfirmed(true);
         router.replace(`/events/${event.id}`);
-      } else if (attempts >= 15) {
+      } else if (attempts >= maxAttempts) {
+        stopped = true;
         clearInterval(poll);
         setPrinting(false);
-        setSeatError(
-          "Payment confirmed — ticket is finalizing, check My Tickets shortly."
-        );
+        // Deliberately NOT "payment confirmed": all this code knows is
+        // that the order is still `pending`, which is exactly the state
+        // an unprocessed webhook leaves behind. Claiming otherwise sent
+        // people to My Tickets to look for something that isn't there.
+        setTicketPending(sessionId);
         router.replace(`/events/${event.id}`);
       }
     }, 1500);
 
-    return () => clearInterval(poll);
+    return () => {
+      stopped = true;
+      clearInterval(poll);
+    };
   }, [searchParams, event.id, router]);
+
+  /**
+   * Re-check a payment that finished without a ticket. Same lookup the
+   * poll does, on demand — the webhook may simply have been slow, or may
+   * have been replayed since (`stripe events resend`).
+   */
+  const recheckTicket = async () => {
+    if (!ticketPending || pendingChecking) {
+      return;
+    }
+
+    setPendingChecking(true);
+    setSeatError(null);
+
+    try {
+      const result = await getOrderStatus(ticketPending);
+
+      if (result.status === "paid") {
+        setSelectedSeats(result.seats);
+        setIssuedTickets(result.ticketsDetail);
+        setBookingCode(ticketPending.slice(-10).toUpperCase());
+        setTicketPending(null);
+        setConfirmed(true);
+      } else {
+        setSeatError(
+          "STILL NOT ISSUED — THE PAYMENT CONFIRMATION HASN'T REACHED THE SERVER YET."
+        );
+      }
+    } catch (err) {
+      console.error("Order status lookup failed:", err);
+      setSeatError("COULDN'T REACH THE SERVER. TRY AGAIN IN A MOMENT.");
+    } finally {
+      setPendingChecking(false);
+    }
+  };
 
   const total =
     selectedSeats.length * event.price;
@@ -178,6 +249,7 @@ function TicketDrawerInner({
     setFilter("ALL");
     setSeatError(null);
     setIssuedTickets([]);
+    setTicketPending(null);
   };
 
   const closeDrawer = () => {
@@ -190,6 +262,8 @@ function TicketDrawerInner({
     setPrinting(false);
     setSelectedSeats([]);
     setIssuedTickets([]);
+    setTicketPending(null);
+    setSeatError(null);
     setFilter("ALL");
   };
 
@@ -399,6 +473,90 @@ function TicketDrawerInner({
               <span>
                 SEATWISE® / 2026
               </span>
+
+            </div>
+
+          </div>
+
+        ) : ticketPending ? (
+
+          /* =====================================================
+             PAID, BUT NO TICKET YET — a terminal state the user
+             can act on. Previously the printing animation simply
+             ran out and left a misleading one-line error.
+          ===================================================== */
+
+          <div className="ticket-pending">
+
+            <div className="ticket-drawer__top">
+
+              <span>
+                SEATWISE® / BOOKING
+              </span>
+
+              <button
+                type="button"
+                onClick={closeDrawer}
+              >
+                CLOSE ×
+              </button>
+
+            </div>
+
+            <div className="ticket-pending__body">
+
+              <span className="ticket-pending__eyebrow">
+                PAYMENT TAKEN
+              </span>
+
+              <strong>
+                YOUR TICKET ISN&apos;T ISSUED YET.
+              </strong>
+
+              <p>
+                STRIPE CONFIRMS A PAYMENT IN A SEPARATE CALL TO THIS
+                SERVER, AND THAT CALL HASN&apos;T ARRIVED. NOTHING IS
+                LOST — YOUR ORDER IS RECORDED AND THE TICKET APPEARS IN
+                MY TICKETS THE MOMENT IT LANDS.
+              </p>
+
+              <span className="ticket-pending__ref">
+                REF {ticketPending.slice(-10).toUpperCase()}
+              </span>
+
+              {seatError && (
+                <p className="ticket-pending__error" role="status">
+                  {seatError}
+                </p>
+              )}
+
+              <div className="ticket-pending__actions">
+
+                <button
+                  type="button"
+                  className="ticket-pending__retry"
+                  onClick={recheckTicket}
+                  disabled={pendingChecking}
+                >
+                  {pendingChecking ? "CHECKING..." : "CHECK AGAIN ↻"}
+                </button>
+
+                <Link
+                  href="/my-tickets"
+                  className="ticket-pending__link"
+                >
+                  MY TICKETS ↗
+                </Link>
+
+                <button
+                  type="button"
+                  className="ticket-pending__done"
+                  onClick={closeDrawer}
+                >
+                  DONE
+                </button>
+
+              </div>
 
             </div>
 

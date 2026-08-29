@@ -34,6 +34,25 @@ Copy the `whsec_…` it prints into `STRIPE_WEBHOOK_SECRET`. It changes
 every time `stripe listen` restarts, and a stale value makes the webhook
 reject every event — payment succeeds and no ticket is ever issued.
 
+### When a payment leaves no ticket
+
+That is what an unprocessed webhook looks like from the outside: the
+order row stays `status = 'pending'` with zero tickets, `/my-tickets` is
+empty, and the checkout drawer stops on a "PAYMENT TAKEN / YOUR TICKET
+ISN'T ISSUED YET" panel with a CHECK AGAIN button. Nothing is lost —
+the order and its Stripe session id are recorded.
+
+Fix the listener (or the hosted endpoint's secret), then replay the
+event:
+
+```bash
+stripe events resend <evt_…>
+```
+
+The webhook is idempotent — unique `stripe_session_id` and
+`idempotency_key` — so replaying a delivery that already succeeded is
+safe and issues nothing twice.
+
 ## Verification
 
 ```bash
@@ -111,7 +130,12 @@ password still work. Google Cloud Console needs
 `GET /api/health` is the health check: no database, no Stripe, and it
 names any missing environment variable (never its value). It also reports
 `authOrigin` — if that doesn't match the address in your browser, sign-in
-is broken and that is why.
+is broken and that is why — and `googleRedirectUri`, the exact string
+sent to Google. `Error 400: redirect_uri_mismatch` means that string is
+not registered verbatim under **Authorized redirect URIs** on the OAuth
+client named by `GOOGLE_CLIENT_ID`; paste it from here rather than
+retyping it, and note that "Authorized JavaScript origins" is a different
+field that does not satisfy it.
 
 ### "Service waking up / application loading"
 
