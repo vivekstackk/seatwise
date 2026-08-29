@@ -4,7 +4,9 @@ config({ path: ".env.local" });
 async function main() {
   const { db } = await import("./index");
   const { events, user } = await import("./schema");
-  const { holdSeatsCore, releaseSeatCore } = await import("./holds");
+  const { holdSeatsCore, releaseSeatCore, getHeldOrSoldSeats } = await import(
+    "./holds"
+  );
   const { sql } = await import("drizzle-orm");
 
   const TEST_EVENT_ID = "concurrency-test-event";
@@ -91,6 +93,49 @@ async function main() {
 
   console.log(
     `10 parallel requests from same buyer -> ${heldCount} held, ${capExceededCount} cap_exceeded [${capPass ? "PASS" : "FAIL"}]`
+  );
+
+  console.log("\n=== Hold release test ===\n");
+
+  await db.execute(sql`DELETE FROM seat_holds WHERE event_id = ${TEST_EVENT_ID}`);
+  await db.execute(sql`DELETE FROM hold_history WHERE event_id = ${TEST_EVENT_ID}`);
+
+  const owner = "test-buyer-1";
+  const other = "test-buyer-2";
+
+  const first = await holdSeatsCore(TEST_EVENT_ID, ["Z1"], owner);
+
+  // A release names a buyer, so someone else asking for the same seat to
+  // be freed must not be able to knock a hold out from under its owner.
+  await releaseSeatCore(TEST_EVENT_ID, "Z1", other);
+  const stillHeld = (await getHeldOrSoldSeats(TEST_EVENT_ID)).includes("Z1");
+
+  await releaseSeatCore(TEST_EVENT_ID, "Z1", owner);
+  const afterRelease = (await getHeldOrSoldSeats(TEST_EVENT_ID)).includes("Z1");
+
+  const rehold = await holdSeatsCore(TEST_EVENT_ID, ["Z1"], other);
+
+  const historyResult = await db.execute(sql`
+    SELECT released_at FROM hold_history
+    WHERE event_id = ${TEST_EVENT_ID} AND seat_id = 'Z1' AND buyer_id = ${owner}
+  `);
+  const historyRows = (
+    Array.isArray(historyResult) ? historyResult : (historyResult?.rows ?? [])
+  ) as { released_at: unknown }[];
+  const auditClosed = historyRows.every((r) => r.released_at !== null);
+
+  const releasePass =
+    first.held.includes("Z1") &&
+    stillHeld &&
+    !afterRelease &&
+    rehold.held.includes("Z1") &&
+    historyRows.length > 0 &&
+    auditClosed;
+
+  if (!releasePass) allPassed = false;
+
+  console.log(
+    `release by non-owner ignored: ${stillHeld ? "yes" : "no"} / seat freed by owner: ${!afterRelease ? "yes" : "no"} / re-held by another buyer: ${rehold.held.includes("Z1") ? "yes" : "no"} / hold_history closed: ${auditClosed ? "yes" : "no"} [${releasePass ? "PASS" : "FAIL"}]`
   );
 
   console.log("\nCleaning up test fixtures...");

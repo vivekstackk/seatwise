@@ -9,6 +9,7 @@ import {
   createCheckout,
   getOrderStatus,
 } from "@/lib/db/seats";
+import { compareSeatIds, seatRowLabels } from "@/lib/seatGrid";
 
 type Props = {
   event: {
@@ -20,11 +21,11 @@ type Props = {
     venue: string;
     price: number;
     time?: string;
+    /** Grid dimensions from the events row — no longer assumed 8 x 10. */
+    seatRows: number;
+    seatsPerRow: number;
   };
 };
-
-const rows = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const seatsPerRow = 10;
 
 // bestsellerSeats below is still fake/cosmetic data — it just marks
 // which seats show the "•" bestseller badge, it has no bearing on
@@ -43,10 +44,14 @@ const bestsellerSeats = [
   "D6",
 ];
 
+const MAX_SEATS_PER_BOOKING = 6;
+
 type SeatFilter =
   | "ALL"
   | "BESTSELLER"
   | "SELECTED";
+
+type TicketDetail = { seatId: string; qrDataUrl: string };
 
 function TicketDrawerInner({
   event,
@@ -54,13 +59,26 @@ function TicketDrawerInner({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [open, setOpen] = useState(false);
+  const rows = useMemo(
+    () => seatRowLabels(event.seatRows),
+    [event.seatRows]
+  );
+  const seatsPerRow = event.seatsPerRow;
+
+  // Arriving back from Stripe is knowable at first render, so the drawer
+  // opens as initial state rather than being switched on from an effect
+  // (which would render the closed drawer first, then immediately again).
+  const returningFromCheckout =
+    searchParams.get("payment") === "success" &&
+    Boolean(searchParams.get("session_id"));
+
+  const [open, setOpen] = useState(returningFromCheckout);
   const [selectedSeats, setSelectedSeats] =
     useState<string[]>([]);
   const [confirmed, setConfirmed] =
     useState(false);
   const [printing, setPrinting] =
-    useState(false);
+    useState(returningFromCheckout);
   const [filter, setFilter] =
     useState<SeatFilter>("ALL");
   const [bookingCode, setBookingCode] =
@@ -69,18 +87,35 @@ function TicketDrawerInner({
     useState<string[]>([]);
   const [seatError, setSeatError] =
     useState<string | null>(null);
+  const [issuedTickets, setIssuedTickets] =
+    useState<TicketDetail[]>([]);
 
   useEffect(() => {
     if (!open) return;
 
-    let cancelled = false;
+    const source = new EventSource(`/api/events/${event.id}/stream`);
 
-    getSeatStatus(event.id).then((seats) => {
-      if (!cancelled) setHeldOrSoldSeats(seats);
-    });
+    // The stream sends *named* `seats` frames. onmessage only fires for
+    // unnamed events, so listening there received nothing at all while
+    // still looking like a healthy connection.
+    const onSeats = (e: MessageEvent) => {
+      try {
+        setHeldOrSoldSeats(JSON.parse(e.data));
+      } catch {
+        // ignore malformed message
+      }
+    };
+
+    source.addEventListener("seats", onSeats as EventListener);
+
+    source.onerror = () => {
+      // EventSource reconnects automatically on its own.
+      console.warn("Seat status stream disconnected — reconnecting");
+    };
 
     return () => {
-      cancelled = true;
+      source.removeEventListener("seats", onSeats as EventListener);
+      source.close();
     };
   }, [open, event.id]);
 
@@ -98,10 +133,6 @@ function TicketDrawerInner({
       return;
     }
 
-    setOpen(true);
-    setPrinting(true);
-    setConfirmed(false);
-
     let attempts = 0;
 
     const poll = setInterval(async () => {
@@ -112,6 +143,7 @@ function TicketDrawerInner({
       if (result.status === "paid") {
         clearInterval(poll);
         setSelectedSeats(result.seats);
+        setIssuedTickets(result.ticketsDetail);
         setBookingCode(sessionId.slice(-10).toUpperCase());
         setPrinting(false);
         setConfirmed(true);
@@ -136,19 +168,7 @@ function TicketDrawerInner({
     selectedSeats.length;
 
   const sortedSeats = useMemo(() => {
-    return [...selectedSeats].sort((a, b) => {
-      const rowA = a.charCodeAt(0);
-      const rowB = b.charCodeAt(0);
-
-      if (rowA !== rowB) {
-        return rowA - rowB;
-      }
-
-      return (
-        Number(a.slice(1)) -
-        Number(b.slice(1))
-      );
-    });
+    return [...selectedSeats].sort(compareSeatIds);
   }, [selectedSeats]);
 
   const openDrawer = () => {
@@ -156,6 +176,8 @@ function TicketDrawerInner({
     setConfirmed(false);
     setPrinting(false);
     setFilter("ALL");
+    setSeatError(null);
+    setIssuedTickets([]);
   };
 
   const closeDrawer = () => {
@@ -167,6 +189,7 @@ function TicketDrawerInner({
     setConfirmed(false);
     setPrinting(false);
     setSelectedSeats([]);
+    setIssuedTickets([]);
     setFilter("ALL");
   };
 
@@ -191,7 +214,10 @@ function TicketDrawerInner({
       return;
     }
 
-    if (selectedSeats.length >= 6) {
+    if (selectedSeats.length >= MAX_SEATS_PER_BOOKING) {
+      setSeatError(
+        `You can book up to ${MAX_SEATS_PER_BOOKING} seats at a time.`
+      );
       return;
     }
 
@@ -216,12 +242,12 @@ function TicketDrawerInner({
 
       const freshStatus = await getSeatStatus(event.id);
       setHeldOrSoldSeats(freshStatus);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setSelectedSeats((current) =>
         current.filter((item) => item !== seat)
       );
 
-      if (err?.message === "Not signed in") {
+      if (err instanceof Error && err.message === "Not signed in") {
         router.push("/login");
         return;
       }
@@ -259,7 +285,7 @@ function TicketDrawerInner({
     try {
       const result = await createCheckout(event.id);
       window.location.href = result.url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Checkout failed:", err);
       setSeatError("Something went wrong starting checkout. Try again.");
     }
@@ -435,7 +461,7 @@ function TicketDrawerInner({
                   {String(
                     seatCount
                   ).padStart(2, "0")}{" "}
-                  / 06
+                  / {String(MAX_SEATS_PER_BOOKING).padStart(2, "0")}
                 </div>
 
               </div>
@@ -720,7 +746,7 @@ function TicketDrawerInner({
               </button>
 
               <small>
-                MAXIMUM 6 SEATS PER BOOKING
+                MAXIMUM {MAX_SEATS_PER_BOOKING} SEATS PER BOOKING
               </small>
 
             </div>
@@ -876,20 +902,34 @@ function TicketDrawerInner({
 
                 <div className="booking-ticket__qr">
 
-                  <div className="booking-ticket__qr-grid">
+                  {/* One real, scannable code per seat — the signed
+                      tickets.qr_token, rendered server-side. This used
+                      to be a 10x10 grid of empty <i> elements: it
+                      looked like a QR code and encoded nothing, so a
+                      ticket could never actually be scanned at a gate. */}
+                  {issuedTickets.length > 0 ? (
+                    <div className="booking-ticket__qr-list">
+                      {issuedTickets.map((ticket) => (
+                        <figure
+                          className="booking-ticket__qr-item"
+                          key={ticket.seatId}
+                        >
+                          <img
+                            src={ticket.qrDataUrl}
+                            alt={`Entry QR code for seat ${ticket.seatId}`}
+                          />
 
-                    {Array.from(
-                      { length: 100 },
-                      (_, index) => (
-                        <i key={index} />
-                      )
-                    )}
-
-                  </div>
-
-                  <span>
-                    SW
-                  </span>
+                          <figcaption>
+                            {ticket.seatId}
+                          </figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  ) : (
+                    <span>
+                      SW
+                    </span>
+                  )}
 
                 </div>
 

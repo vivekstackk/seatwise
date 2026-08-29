@@ -9,8 +9,7 @@ function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [showNotification, setShowNotification] = useState(false);
-  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationDismissed, setNotificationDismissed] = useState(false);
 
   /*
    * =========================================================
@@ -21,38 +20,36 @@ function AccountPageContent() {
    *
    * Without ?welcome=1, an authenticated user sees
    * a simple WELCOME BACK message.
+   *
+   * Both the text and the visibility are derived from the session and
+   * the URL, so they're computed during render. The effect below only
+   * owns the auto-hide timer.
    */
+  const accountWasJustCreated =
+    searchParams.get("welcome") === "1" ||
+    searchParams.get("created") === "1" ||
+    searchParams.get("success") === "created";
+
+  const notificationName = (session?.user.name || "THERE").toUpperCase();
+
+  const notificationMessage = accountWasJustCreated
+    ? `ACCOUNT CREATED SUCCESSFULLY — WELCOME, ${notificationName}`
+    : `WELCOME BACK — ${notificationName}`;
+
+  const showNotification = !isPending && !!session && !notificationDismissed;
+
   useEffect(() => {
-    if (!isPending && session) {
-      const wasCreated =
-        searchParams.get("welcome") === "1" ||
-        searchParams.get("created") === "1" ||
-        searchParams.get("success") === "created";
+    if (isPending || !session) return;
 
-      const name = session.user.name || "THERE";
+    /*
+     * Automatically hide notification after 4.5 seconds.
+     */
+    const timer = window.setTimeout(() => {
+      setNotificationDismissed(true);
+    }, 4500);
 
-      if (wasCreated) {
-        setNotificationMessage(
-          `ACCOUNT CREATED SUCCESSFULLY — WELCOME, ${name.toUpperCase()}`
-        );
-      } else {
-        setNotificationMessage(
-          `WELCOME BACK — ${name.toUpperCase()}`
-        );
-      }
-
-      setShowNotification(true);
-
-      /*
-       * Automatically hide notification after 4.5 seconds.
-       */
-      const timer = window.setTimeout(() => {
-        setShowNotification(false);
-      }, 4500);
-
-      return () => window.clearTimeout(timer);
-    }
-  }, [isPending, session, searchParams]);
+    return () => window.clearTimeout(timer);
+  }, [isPending, session]);
 
   /*
    * =========================================================

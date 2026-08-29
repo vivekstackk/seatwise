@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { events, type Event } from "../data/events";
 import { getMyTickets } from "@/lib/db/seats";
 
 type Booking = {
@@ -15,12 +14,16 @@ type Booking = {
   time: string;
   location: string;
   venue: string;
+  // Comes from the events row now. This page used to look the image up
+  // in a hardcoded array, so a ticket for an organizer-created event
+  // rendered with no artwork at all.
+  image: string;
   price: number;
   seats: string[];
-  ticketsDetail: { seatId: string; qrToken: string }[];
+  ticketsDetail: { seatId: string; status: string; qrDataUrl: string }[];
   total: number;
   quantity: number;
-  bookedAt: string;
+  bookedAt: string | Date;
   isExpired: boolean;
 };
 
@@ -140,14 +143,10 @@ export default function MyTicketsPage() {
       ) : (
         <section className="my-tickets-grid">
           {upcomingBookings.map((booking, index) => {
-            const event: Event | undefined = events.find(
-              (item: Event) => item.id === booking.eventId
-            );
-
             const ticketKey = [
               booking.bookingId || "ticket",
               booking.eventId || "event",
-              booking.bookedAt || "time",
+              String(booking.bookedAt ?? "time"),
               index,
             ].join("-");
 
@@ -173,9 +172,9 @@ export default function MyTicketsPage() {
                   </span>
                 </div>
 
-                {event?.image && (
+                {booking.image && (
                   <div className="saved-ticket__image-wrap">
-                    <img src={event.image} alt={booking.title} className="saved-ticket__image" />
+                    <img src={booking.image} alt={booking.title} className="saved-ticket__image" />
                     <span className="saved-ticket__image-label">
                       {booking.isExpired ? "EXPIRED" : "LIVE EVENT"}
                     </span>
@@ -268,8 +267,42 @@ export default function MyTicketsPage() {
                   <strong>{selectedTicket.bookingId || "SW26"}</strong>
                   <small>VALID FOR ENTRY / SEATWISE®</small>
                 </div>
-                <div className="large-ticket__qr">SW</div>
+                <div className="large-ticket__qr">
+                  {/* Real scannable code (the signed tickets.qr_token),
+                      not the old decorative "SW" placeholder. Rendered
+                      server-side as a PNG data URL so html2canvas can
+                      capture it into the downloaded PDF. */}
+                  {selectedTicket.ticketsDetail?.[0] ? (
+                    <img
+                      src={selectedTicket.ticketsDetail[0].qrDataUrl}
+                      alt={`Entry QR code for seat ${selectedTicket.ticketsDetail[0].seatId}`}
+                    />
+                  ) : (
+                    "SW"
+                  )}
+                </div>
               </div>
+
+              {selectedTicket.ticketsDetail?.length > 1 && (
+                <div className="large-ticket__qr-strip">
+                  <span>ONE CODE PER SEAT — SCAN EACH AT THE GATE</span>
+
+                  <div>
+                    {selectedTicket.ticketsDetail.map((ticket) => (
+                      <figure key={ticket.seatId}>
+                        <img
+                          src={ticket.qrDataUrl}
+                          alt={`Entry QR code for seat ${ticket.seatId}`}
+                        />
+                        <figcaption>
+                          {ticket.seatId}
+                          {ticket.status !== "valid" && ` / ${ticket.status.toUpperCase()}`}
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="large-ticket__footer">
                 <strong>₹{(Number(selectedTicket.total) || 0).toLocaleString("en-IN")}</strong>
@@ -281,19 +314,6 @@ export default function MyTicketsPage() {
                 </span>
               </div>
             </div>
-
-            {selectedTicket.ticketsDetail && selectedTicket.ticketsDetail.length > 0 && (
-              <div style={{ padding: "0 1.5rem 1rem", fontSize: "0.7rem", color: "#6b7280" }}>
-                <strong style={{ display: "block", marginBottom: "0.4rem" }}>
-                  TICKET TOKENS (dev/demo only)
-                </strong>
-                {selectedTicket.ticketsDetail.map((t) => (
-                  <div key={t.seatId} style={{ fontFamily: "monospace", marginBottom: "0.2rem", wordBreak: "break-all" }}>
-                    {t.seatId}: {t.qrToken}
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div className="ticket-viewer__actions">
               <button type="button" className="ticket-viewer__download" onClick={downloadTicket}>

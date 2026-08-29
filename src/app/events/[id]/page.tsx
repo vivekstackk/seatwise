@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { events } from "../../data/events";
+import { getPublishedEventById } from "@/lib/db/events";
 import TicketDrawer from "../../components/TicketDrawer";
+
+// Seat availability is live, so this page must not be cached.
+export const dynamic = "force-dynamic";
 
 export default async function EventPage({
   params,
@@ -10,7 +13,7 @@ export default async function EventPage({
 }) {
   const { id } = await params;
 
-  const event = events.find((item) => item.id === id);
+  const event = await getPublishedEventById(id);
 
   if (!event) {
     notFound();
@@ -60,7 +63,8 @@ export default async function EventPage({
             </div>
           </div>
         </div>
-                <div className="event-detail__info">
+
+        <div className="event-detail__info">
           <div className="event-detail__about">
             <small>ABOUT</small>
 
@@ -71,7 +75,7 @@ export default async function EventPage({
             <small>DETAILS</small>
 
             <p>
-              {event.date} / {event.time}
+              {event.fullDate} / {event.time}
               <br />
               {event.venue}
               <br />
@@ -82,21 +86,29 @@ export default async function EventPage({
           <div className="event-detail__price">
             <small>FROM</small>
 
-            <strong>
-              ₹{event.price.toLocaleString("en-IN")}
-            </strong>
+            <strong>₹{event.price.toLocaleString("en-IN")}</strong>
           </div>
 
-          <TicketDrawer
-            event={{
-              id: event.id,
-              title: event.title,
-              date: event.date,
-              location: event.location,
-              venue: event.venue,
-              price: event.price,
-            }}
-          />
+          {event.isPast ? (
+            <p className="event-detail__closed">
+              THIS EVENT HAS ENDED — BOOKING CLOSED
+            </p>
+          ) : (
+            <TicketDrawer
+              event={{
+                id: event.id,
+                number: event.number,
+                title: event.title,
+                date: event.date,
+                time: event.time,
+                location: event.location,
+                venue: event.venue,
+                price: event.price,
+                seatRows: event.seatRows,
+                seatsPerRow: event.seatsPerRow,
+              }}
+            />
+          )}
         </div>
       </section>
     </main>

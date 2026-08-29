@@ -1,0 +1,66 @@
+# Render blueprint (https://render.com/docs/blueprint-spec).
+#
+# The existing service was created by hand in the dashboard, so this file
+# is documentation-with-teeth rather than the live source of truth: it
+# records the exact build/start commands and the full set of environment
+# variables the app needs, and it lets the service be recreated from
+# scratch without guessing.
+#
+# Every secret is declared `sync: false`, which means "this service needs
+# this variable, ask me for the value" — Render will not read it from the
+# repo, and no real value is ever committed here.
+services:
+  - type: web
+    name: seatwise
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+
+    # Cheap, dependency-free liveness probe. It also returns 503 and
+    # names any missing environment variable, so a misconfigured deploy
+    # fails visibly instead of booting and 500-ing on every page.
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+
+      # `next start` reads PORT; Render injects it, so it is not set here.
+      - key: NODE_ENV
+        value: production
+
+      # Neon POOLED connection string.
+      - key: DATABASE_URL
+        sync: false
+
+      # Better Auth. BETTER_AUTH_URL must be the deployed origin — if it
+      # is left as localhost, sign-in redirects and Stripe's success_url
+      # both point at the developer's machine.
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+
+      # Google OAuth. The authorized redirect URI in Google Cloud Console
+      # must be <BETTER_AUTH_URL>/api/auth/callback/google.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+      # Stripe. STRIPE_WEBHOOK_SECRET here is the *hosted endpoint*
+      # secret from the Stripe dashboard (whsec_…), not the one the
+      # Stripe CLI prints locally — they are different values.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+      # HMAC key for ticket QR tokens. Changing it invalidates every
+      # ticket already issued, because check-in matches on the signature.
+      - key: TICKET_SIGNING_SECRET
+        sync: false

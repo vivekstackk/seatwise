@@ -508,7 +508,24 @@ export default function LoginPage() {
           <button
             type="button"
             className="auth-google"
-            onClick={() => {}}
+            onClick={async () => {
+              setAuthError(null);
+
+              // Better Auth only registers Google when the deployment
+              // has both credentials set, so this can legitimately come
+              // back as an error rather than a redirect — say so instead
+              // of leaving the button looking inert.
+              const { error } = await signIn.social({
+                provider: "google",
+                callbackURL: "/account?welcome=1",
+              });
+
+              if (error) {
+                setAuthError(
+                  "GOOGLE SIGN-IN IS UNAVAILABLE — USE EMAIL AND PASSWORD"
+                );
+              }
+            }}
           >
 
             <span className="auth-google__icon">

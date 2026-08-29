@@ -28,5 +28,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/my-tickets", "/account"],
+  // /checkin and /organizer are gated here for the cheap signed-out
+  // case only. Role is NOT checked in the proxy: the cookie carries no
+  // role claim, so the real gate lives in the server actions and page
+  // loaders (requireStaff / requireOrganizer) where the session and its
+  // role are read from the database.
+  matcher: ["/my-tickets", "/account", "/checkin", "/organizer/:path*"],
 };

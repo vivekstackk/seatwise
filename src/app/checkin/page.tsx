@@ -1,134 +1,53 @@
-"use client";
+import Link from "next/link";
+import { getCheckInAccess } from "@/lib/db/seats";
+import CheckInScanner from "./CheckInScanner";
 
-import { useState } from "react";
-import { checkInTicket } from "@/lib/db/seats";
+// Reads the live session role, so it must never be prerendered.
+export const dynamic = "force-dynamic";
 
-export default function CheckInPage() {
-  const [token, setToken] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+/**
+ * Gate check-in.
+ *
+ * Previously this page was open to any signed-in account, which meant
+ * any buyer who could read a token could burn someone else's ticket —
+ * the "each ticket admits once" guarantee was effectively decorative.
+ * The proxy only redirects signed-out visitors (the session cookie
+ * carries no role), so the role check has to happen here, server-side,
+ * and again inside the checkInTicket action itself.
+ */
+export default async function CheckInPage() {
+  const access = await getCheckInAccess();
 
-  const handleScan = async () => {
-    if (!token.trim()) return;
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const res = await checkInTicket(token.trim());
-      setResult(res);
-    } catch (err) {
-      setResult({ status: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <main
-      style={{
-        maxWidth: "480px",
-        margin: "0 auto",
-        padding: "6rem 1.5rem 4rem",
-      }}
-    >
-      <p
-        style={{
-          fontSize: "0.75rem",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "#6b7280",
-          marginBottom: "0.5rem",
-        }}
-      >
-        SeatWise / Check-In
-      </p>
-
-      <h1 style={{ fontSize: "1.6rem", fontWeight: 700, marginBottom: "2rem" }}>
-        Scan Ticket
-      </h1>
-
-      <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "1.5rem" }}>
-        No camera scanner yet — paste the ticket&apos;s token below (found on
-        the ticket in My Tickets) to simulate a scan.
-      </p>
-
-      <textarea
-        value={token}
-        onChange={(e) => setToken(e.target.value)}
-        placeholder="Paste qr_token here"
-        rows={3}
-        style={{
-          width: "100%",
-          padding: "0.9rem",
-          border: "1px solid #d1d5db",
-          fontFamily: "monospace",
-          fontSize: "0.8rem",
-          marginBottom: "1rem",
-          boxSizing: "border-box",
-        }}
-      />
-
-      <button
-        onClick={handleScan}
-        disabled={loading || !token.trim()}
-        style={{
-          width: "100%",
-          padding: "0.9rem",
-          background: "#111827",
-          color: "#fff",
-          border: "none",
-          fontSize: "0.8rem",
-          letterSpacing: "0.05em",
-          textTransform: "uppercase",
-          cursor: loading ? "default" : "pointer",
-          opacity: loading ? 0.6 : 1,
-          marginBottom: "1.5rem",
-        }}
-      >
-        {loading ? "Checking..." : "Verify & Check In"}
-      </button>
-
-      {result && (
-        <div
-          style={{
-            padding: "1rem",
-            border: "1px solid",
-            borderColor:
-              result.status === "valid" ? "#16a34a" : "#dc2626",
-            background:
-              result.status === "valid" ? "#f0fdf4" : "#fef2f2",
-          }}
-        >
-          {result.status === "valid" && (
-            <>
-              <strong style={{ color: "#16a34a" }}>VALID — CHECKED IN</strong>
-              <p style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>
-                {result.eventTitle} — Seat {result.seatId}
-              </p>
-            </>
-          )}
-
-          {result.status === "already_used" && (
-            <>
-              <strong style={{ color: "#dc2626" }}>ALREADY USED</strong>
-              <p style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>
-                Seat {result.seatId} was checked in at{" "}
-                {new Date(result.usedAt).toLocaleString("en-IN")}
-              </p>
-            </>
-          )}
-
-          {result.status === "not_found" && (
-            <strong style={{ color: "#dc2626" }}>INVALID TICKET</strong>
-          )}
-
-          {result.status === "error" && (
-            <strong style={{ color: "#dc2626" }}>
-              Something went wrong. Try again.
-            </strong>
-          )}
+  if (!access.allowed) {
+    return (
+      <main className="checkin">
+        <div className="checkin__head">
+          <span>SEATWISE® / CHECK-IN</span>
+          <Link href="/">← HOME</Link>
         </div>
-      )}
-    </main>
-  );
+
+        <h1>
+          STAFF ONLY<span>.</span>
+        </h1>
+
+        <p className="checkin__note">
+          {access.reason === "signed_out"
+            ? "Sign in with a staff account to check tickets in."
+            : "This account is a buyer account. Check-in is restricted to organizer or staff accounts."}
+        </p>
+
+        <p className="checkin__note checkin__note--muted">
+          Roles are assigned out of band — there is no self-service
+          promotion. An administrator can grant access with:{" "}
+          <code>npm run set-role -- you@example.com organizer</code>
+        </p>
+
+        <Link href="/my-tickets" className="checkin__link">
+          GO TO MY TICKETS ↗
+        </Link>
+      </main>
+    );
+  }
+
+  return <CheckInScanner staffName={access.name ?? "STAFF"} role={access.role} />;
 }

@@ -12,27 +12,44 @@ async function main() {
   const { db } = await import("./index");
   const { events } = await import("./schema");
 
-  // Same 9 events currently hardcoded in src/app/data/events.ts.
-  // Once this seed has run, Phase 3 will point the frontend at
-  // real DB rows instead of that static file.
-  //
-  // IMPORTANT: every date below has an explicit +05:30 (IST) offset.
-  // Without it, "new Date('...T20:00:00')" gets parsed as LOCAL time
-  // of whatever machine runs this script — meaning the same code
-  // seeds a different real-world instant depending on where it's
-  // run (this bit us: tested on a UTC machine, run on an IST one).
-  // The +05:30 makes the absolute instant unambiguous regardless of
-  // the machine's timezone. Postgres then stores the UTC-equivalent
-  // literal digits (e.g. 20:00 IST -> stored as 14:30), since the
-  // starts_at column has no timezone tag — always convert back to
-  // IST when displaying this to users later (Phase 3/4 frontend work).
+  /**
+   * Demo show times, relative to whenever the seed is run.
+   *
+   * These were hardcoded 2026 dates, which quietly rotted: once the real
+   * date passed them the events became unbookable (correctly — a past
+   * event closes booking), and a catalogue of dead shows reads as "the
+   * app is broken". Relative offsets make `npm run db:seed` a "roll the
+   * demo forward" command.
+   *
+   * The first offset is deliberately negative: one ended event keeps the
+   * ENDED / BOOKING CLOSED path visible in the demo instead of only
+   * existing in the code.
+   *
+   * The date part is taken in IST, not the host's zone — on a UTC host
+   * shortly before midnight, "today + 7" would otherwise land a day
+   * early. The explicit +05:30 then pins the absolute instant, so the
+   * same script seeds the same real moment wherever it runs.
+   */
+  function istDaysFromNow(days: number, timeOfDay: string): Date {
+    const target = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+
+    const istDate = target.toLocaleDateString("en-CA", {
+      timeZone: "Asia/Kolkata",
+    });
+
+    return new Date(`${istDate}T${timeOfDay}:00+05:30`);
+  }
+
+  // Postgres stores the UTC-equivalent literal digits (20:00 IST ->
+  // 14:30), because starts_at carries no timezone tag. Everything that
+  // displays it converts back through Asia/Kolkata — see src/lib/db/events.ts.
   const seedEvents = [
     {
       id: "after-dark",
       number: "01",
       title: "After Dark",
       category: "Music",
-      startsAt: new Date("2026-08-14T20:00:00+05:30"),
+      startsAt: istDaysFromNow(-5, "20:00"),
       location: "Mumbai",
       venue: "NESCO Center",
       image: "/events/img-1.png",
@@ -45,7 +62,7 @@ async function main() {
       number: "02",
       title: "The Last Light",
       category: "Theatre",
-      startsAt: new Date("2026-08-22T19:30:00+05:30"),
+      startsAt: istDaysFromNow(8, "19:30"),
       location: "Delhi",
       venue: "Kamani Auditorium",
       image: "/events/img-2.png",
@@ -58,7 +75,7 @@ async function main() {
       number: "03",
       title: "Frequency",
       category: "Music",
-      startsAt: new Date("2026-08-30T19:00:00+05:30"),
+      startsAt: istDaysFromNow(15, "19:00"),
       location: "Bengaluru",
       venue: "Palace Grounds",
       image: "/events/img-3.png",
@@ -71,7 +88,7 @@ async function main() {
       number: "04",
       title: "Stand Alone",
       category: "Comedy",
-      startsAt: new Date("2026-09-05T20:30:00+05:30"),
+      startsAt: istDaysFromNow(22, "20:30"),
       location: "Pune",
       venue: "The Box",
       image: "/events/img-4.png",
@@ -84,7 +101,7 @@ async function main() {
       number: "05",
       title: "Between Rooms",
       category: "Culture",
-      startsAt: new Date("2026-09-12T18:30:00+05:30"),
+      startsAt: istDaysFromNow(29, "18:30"),
       location: "Mumbai",
       venue: "NMACC",
       image: "/events/img-5.png",
@@ -97,7 +114,7 @@ async function main() {
       number: "06",
       title: "Open Field",
       category: "Music",
-      startsAt: new Date("2026-09-19T17:00:00+05:30"),
+      startsAt: istDaysFromNow(36, "17:00"),
       location: "Goa",
       venue: "Vagator",
       image: "/events/img-6.png",
@@ -110,7 +127,7 @@ async function main() {
       number: "07",
       title: "Movement",
       category: "Theatre",
-      startsAt: new Date("2026-09-26T19:30:00+05:30"),
+      startsAt: istDaysFromNow(43, "19:30"),
       location: "Delhi",
       venue: "Studio Safdar",
       image: "/events/img-7.png",
@@ -123,7 +140,7 @@ async function main() {
       number: "08",
       title: "Ninety Minutes",
       category: "Sports",
-      startsAt: new Date("2026-10-03T19:00:00+05:30"),
+      startsAt: istDaysFromNow(50, "19:00"),
       location: "Kolkata",
       venue: "Salt Lake Stadium",
       image: "/events/img-8.png",
@@ -136,7 +153,7 @@ async function main() {
       number: "09",
       title: "The Room",
       category: "Culture",
-      startsAt: new Date("2026-10-11T18:00:00+05:30"),
+      startsAt: istDaysFromNow(58, "18:00"),
       location: "Jaipur",
       venue: "Jawahar Kala Kendra",
       image: "/events/img-9.png",

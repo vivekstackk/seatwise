@@ -1,12 +1,14 @@
 "use server";
 
 import { headers } from "next/headers";
-import { eq, sql } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { events, orders, tickets } from "@/lib/db/schema";
+import { ticketQrDataUrl } from "@/lib/qr";
+import { compareSeatIds, isValidSeatId } from "@/lib/seatGrid";
 import {
   holdSeatsCore,
   releaseSeatCore,
@@ -23,8 +25,63 @@ async function requireBuyerId(): Promise<string> {
   return session.user.id;
 }
 
+/**
+ * Check-in is a gate-staff action, not a buyer action. Previously any
+ * signed-in account could burn any ticket it knew the token for, which
+ * made the whole "used once" guarantee decorative. Roles are set out of
+ * band with `npm run set-role` — there is deliberately no self-service
+ * promotion endpoint.
+ */
+const STAFF_ROLES = new Set(["organizer", "staff", "admin"]);
+
+async function requireStaff(): Promise<{ id: string; role: string }> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    throw new Error("Not signed in");
+  }
+
+  const role = (session.user as { role?: string }).role ?? "buyer";
+
+  if (!STAFF_ROLES.has(role)) {
+    throw new Error("Not authorised: check-in requires a staff account");
+  }
+
+  return { id: session.user.id, role };
+}
+
 export async function holdSeats(eventId: string, seatIds: string[]) {
   const buyerId = await requireBuyerId();
+
+  // Server actions are a public HTTP surface. Without this a crafted
+  // request could hold a seat that doesn't exist in the grid ("Z99"),
+  // which then reads back as unavailable to every genuine buyer and can
+  // never be released by clicking it.
+  const [event] = await db
+    .select({
+      status: events.status,
+      seatRows: events.seatRows,
+      seatsPerRow: events.seatsPerRow,
+      startsAt: events.startsAt,
+    })
+    .from(events)
+    .where(eq(events.id, eventId));
+
+  if (!event || event.status !== "published") {
+    throw new Error("Event not available for booking");
+  }
+
+  if (event.startsAt.getTime() < Date.now()) {
+    throw new Error("This event has already started");
+  }
+
+  const invalid = seatIds.filter(
+    (seatId) => !isValidSeatId(seatId, event.seatRows, event.seatsPerRow)
+  );
+
+  if (invalid.length > 0) {
+    throw new Error(`Seat outside this event's map: ${invalid.join(", ")}`);
+  }
+
   return holdSeatsCore(eventId, seatIds, buyerId);
 }
 
@@ -120,87 +177,159 @@ export async function getOrderStatus(sessionId: string) {
     .from(tickets)
     .where(eq(tickets.orderId, order.id));
 
+  const sorted = [...orderTickets].sort((a, b) =>
+    compareSeatIds(a.seatId, b.seatId)
+  );
+
   return {
     status: "paid" as const,
-    seats: orderTickets.map((t) => t.seatId),
+    seats: sorted.map((t) => t.seatId),
     total: order.amountCents,
+    // Real, scannable codes for the confirmation view — one per seat.
+    ticketsDetail: await Promise.all(
+      sorted.map(async (t) => ({
+        seatId: t.seatId,
+        qrDataUrl: await ticketQrDataUrl(t.qrToken),
+      }))
+    ),
   };
 }
 
 /**
- * Real tickets for the logged-in buyer, grouped by order (one card
- * per booking, matching multiple seats bought together), joined
- * with event data. isExpired is computed from the event's real
- * starts_at, not stored anywhere. Dates/times are explicitly
- * formatted in Asia/Kolkata — without that, formatting falls back
- * to whatever timezone the server process happens to run in, which
- * silently produced a wrong displayed time earlier.
+ * Real tickets for the logged-in buyer, grouped by order (one card per
+ * booking, matching multiple seats bought together), joined with event
+ * data. isExpired is computed from the event's real starts_at, not
+ * stored anywhere.
+ *
+ * This deliberately uses Drizzle's *typed* select rather than
+ * db.execute. starts_at is a `timestamp` column, so raw SQL hands back
+ * the bare string "2026-08-14 14:30:00" — and `new Date(...)` on that
+ * string is parsed as *local* time by V8, so on an IST machine the
+ * 8:00 PM show rendered as 02:30 PM. Drizzle's typed reader treats the
+ * same digits as UTC and returns the correct instant; the explicit
+ * Asia/Kolkata timeZone below then pins the display regardless of what
+ * timezone the server process runs in.
  */
 export async function getMyTickets() {
   const buyerId = await requireBuyerId();
 
-  const result: any = await db.execute(sql`
-    SELECT
-      t.order_id, t.seat_id, t.status, t.qr_token,
-      o.amount_cents, o.created_at AS ordered_at,
-      e.id AS event_id, e.title, e.venue, e.location, e.starts_at
-    FROM tickets t
-    JOIN orders o ON o.id = t.order_id
-    JOIN events e ON e.id = t.event_id
-    WHERE o.buyer_id = ${buyerId} AND o.status = 'paid'
-    ORDER BY e.starts_at DESC
-  `);
+  const rows = await db
+    .select({
+      orderId: tickets.orderId,
+      seatId: tickets.seatId,
+      ticketStatus: tickets.status,
+      qrToken: tickets.qrToken,
+      amountCents: orders.amountCents,
+      orderedAt: orders.createdAt,
+      eventId: events.id,
+      title: events.title,
+      venue: events.venue,
+      location: events.location,
+      image: events.image,
+      startsAt: events.startsAt,
+    })
+    .from(tickets)
+    .innerJoin(orders, eq(orders.id, tickets.orderId))
+    .innerJoin(events, eq(events.id, tickets.eventId))
+    .where(and(eq(orders.buyerId, buyerId), eq(orders.status, "paid")))
+    .orderBy(desc(events.startsAt));
 
-  const rows = result.rows ?? result;
+  type Booking = {
+    bookingId: string;
+    eventId: string;
+    title: string;
+    location: string;
+    venue: string;
+    image: string;
+    date: string;
+    time: string;
+    seats: string[];
+    ticketsDetail: {
+      seatId: string;
+      status: string;
+      qrDataUrl: string;
+    }[];
+    total: number;
+    bookedAt: Date;
+    isExpired: boolean;
+  };
 
-  const grouped = new Map<string, any>();
+  const grouped = new Map<string, Booking>();
 
   for (const r of rows) {
-    if (!grouped.has(r.order_id)) {
-      const starts = new Date(r.starts_at);
-
-      grouped.set(r.order_id, {
-        bookingId: r.order_id.slice(-10).toUpperCase(),
-        eventId: r.event_id,
+    if (!grouped.has(r.orderId)) {
+      grouped.set(r.orderId, {
+        bookingId: r.orderId.slice(-10).toUpperCase(),
+        eventId: r.eventId,
         title: r.title,
         location: r.location,
         venue: r.venue,
-        date: starts
+        image: r.image ?? "/events/img-1.png",
+        date: r.startsAt
           .toLocaleDateString("en-IN", {
             day: "2-digit",
             month: "short",
             timeZone: "Asia/Kolkata",
           })
           .toUpperCase(),
-        time: starts.toLocaleTimeString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-          timeZone: "Asia/Kolkata",
-        }),
-        seats: [] as string[],
-        ticketsDetail: [] as { seatId: string; qrToken: string }[],
-        total: r.amount_cents / 100,
-        bookedAt: r.ordered_at,
-        isExpired: starts < new Date(),
+        time: r.startsAt
+          .toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+            timeZone: "Asia/Kolkata",
+          })
+          .toUpperCase(),
+        seats: [],
+        ticketsDetail: [],
+        total: r.amountCents / 100,
+        bookedAt: r.orderedAt,
+        isExpired: r.startsAt.getTime() < Date.now(),
       });
     }
 
-    grouped.get(r.order_id).seats.push(r.seat_id);
-    grouped.get(r.order_id).ticketsDetail.push({
-      seatId: r.seat_id,
-      qrToken: r.qr_token,
+    const booking = grouped.get(r.orderId)!;
+    booking.seats.push(r.seatId);
+    booking.ticketsDetail.push({
+      seatId: r.seatId,
+      status: r.ticketStatus,
+      // Rendered here, on the server, so the raw token never has to be
+      // printed on the page as text (it used to be, under a
+      // "dev/demo only" heading — anyone glancing at a shared screen
+      // could copy it and check the ticket in).
+      qrDataUrl: await ticketQrDataUrl(r.qrToken),
     });
   }
 
-  return Array.from(grouped.values()).map((b) => ({
-    ...b,
-    quantity: b.seats.length,
-    price: b.total / b.seats.length,
-  }));
+  return Array.from(grouped.values()).map((b) => {
+    b.seats.sort(compareSeatIds);
+    b.ticketsDetail.sort((x, y) => compareSeatIds(x.seatId, y.seatId));
+
+    return {
+      ...b,
+      quantity: b.seats.length,
+      price: b.total / b.seats.length,
+    };
+  });
 }
 
+/** Gate staff only — see requireStaff above. */
 export async function checkInTicket(qrToken: string) {
-  await requireBuyerId();
-  return checkInTicketCore(qrToken);
+  await requireStaff();
+  return checkInTicketCore(qrToken.trim());
+}
+
+/** Lets /checkin decide whether to render the scanner or a refusal. */
+export async function getCheckInAccess() {
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  if (!session) return { allowed: false as const, reason: "signed_out" as const };
+
+  const role = (session.user as { role?: string }).role ?? "buyer";
+
+  if (!STAFF_ROLES.has(role)) {
+    return { allowed: false as const, reason: "not_staff" as const, role };
+  }
+
+  return { allowed: true as const, role, name: session.user.name };
 }

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "tsx src/lib/db/seed.ts"
+    "db:seed": "tsx src/lib/db/seed.ts",
+    "set-role": "tsx src/lib/db/set-role.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
@@ -16,7 +17,9 @@
     "drizzle-orm": "^0.45.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
+    "jsqr": "1.4.0",
     "next": "16.3.0",
+    "qrcode": "1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "stripe": "^22.5.0"
@@ -24,6 +27,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
