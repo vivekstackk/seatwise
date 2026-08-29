@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, signUp, useSession } from "@/lib/auth-client";
 
 const authVideos = [
@@ -12,11 +12,12 @@ const authVideos = [
   "/auth%20vid/vid%204.mp4",
 ];
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, isPending } = useSession();
 
   useEffect(() => {
@@ -27,6 +28,35 @@ export default function LoginPage() {
       router.replace("/account");
     }
   }, [isPending, session, router]);
+
+  /*
+   * A failed OAuth callback is a server-side redirect, so the
+   * signIn.social() promise below has long since resolved and cannot
+   * report it. Better Auth appends `?error=<code>` to the
+   * errorCallbackURL we hand it, which is this page — without reading it
+   * the user just reappears on the sign-in form with no explanation,
+   * which is exactly how the missing `account.scope` /
+   * `access_token_expires_at` / `refresh_token_expires_at` columns
+   * presented: Google succeeded, no account was created, no message.
+   *
+   * Derived during render rather than pushed into state by an effect, so
+   * there is one source of truth for what the form is showing. The two
+   * handlers below clear the parameter when the user tries again.
+   */
+  const oauthErrorCode = searchParams.get("error");
+
+  const shownError =
+    authError ??
+    (oauthErrorCode
+      ? `GOOGLE SIGN-IN FAILED — ${oauthErrorCode
+          .replace(/_/g, " ")
+          .toUpperCase()}`
+      : null);
+
+  /** Drop ?error=… so a retry isn't shown alongside a stale failure. */
+  const clearOauthError = () => {
+    if (oauthErrorCode) router.replace("/login");
+  };
 
   const [activeVideo, setActiveVideo] = useState(0);
   const [nextVideo, setNextVideo] = useState<number | null>(null);
@@ -333,6 +363,7 @@ export default function LoginPage() {
             onSubmit={async (event) => {
               event.preventDefault();
               setAuthError(null);
+              clearOauthError();
 
               const formData = new FormData(event.currentTarget);
               const email = String(formData.get("email") ?? "");
@@ -452,9 +483,9 @@ export default function LoginPage() {
 
             {/* AUTH ERROR */}
 
-            {authError && (
+            {shownError && (
               <p className="auth-error" role="alert">
-                {authError}
+                {shownError}
               </p>
             )}
 
@@ -510,10 +541,21 @@ export default function LoginPage() {
             className="auth-google"
             onClick={async () => {
               setAuthError(null);
+              clearOauthError();
 
               const { error } = await signIn.social({
                 provider: "google",
-                callbackURL: "/account?welcome=1",
+                // Returning buyer → straight to their bookings.
+                callbackURL: "/account",
+                // First Google sign-in creates the user from the Google
+                // profile (name and picture come back in the userinfo
+                // response), so it gets the welcome treatment instead.
+                newUserCallbackURL: "/account?welcome=1",
+                // Without this a failure inside the callback lands on
+                // Better Auth's own /api/auth/error page, which says
+                // nothing this app's user can act on. Send them back
+                // here; the effect above turns ?error=… into a message.
+                errorCallbackURL: "/login",
               });
 
               if (!error) {
@@ -624,5 +666,17 @@ export default function LoginPage() {
       </footer>
 
     </main>
+  );
+}
+/**
+ * `useSearchParams` needs a Suspense boundary for this route to keep
+ * prerendering — same shape as /account. The fallback is null because the
+ * form's own markup is what the boundary resolves to almost immediately.
+ */
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

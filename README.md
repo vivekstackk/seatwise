@@ -111,7 +111,11 @@ Skipping this fails in ways that don't look like a missing migration.
 Better Auth validates its tables against the Drizzle schema at runtime,
 so one absent column takes out only the feature that touches it: a
 `verification` table without `updated_at` breaks Google sign-in with a
-500 while email/password keeps working.
+500 while email/password keeps working, and an `account` table without
+`scope` / `access_token_expires_at` / `refresh_token_expires_at` is worse
+than that — Google succeeds, comes back, and silently creates no account,
+because the adapter's error is swallowed and reported as
+`unable_to_create_user`. Those three columns land in `0003`.
 
 Two values must differ from local:
 
@@ -130,6 +134,13 @@ with either missing, the provider is not registered and the "Continue
 with Google" button says so instead of failing obscurely. Email and
 password still work. Google Cloud Console needs
 `<origin>/api/auth/callback/google` as an authorized redirect URI.
+
+A first Google sign-in creates the user from the Google profile: `name`
+and `image` come from Google's userinfo response, `email_verified` from
+Google, and `role` defaults to `buyer`. `/account` shows the Google
+picture when there is one and falls back to initials. A failure inside
+the callback now returns to `/login?error=<code>` and the form prints the
+code, rather than landing on Better Auth's own error page.
 
 `GET /api/health` is the health check: no database, no Stripe, and it
 names any missing environment variable (never its value). It also reports

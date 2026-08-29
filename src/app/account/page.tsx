@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "@/lib/auth-client";
 
@@ -521,7 +522,7 @@ function AccountPageContent() {
               marginTop: "34px",
             }}
           >
-            {/* INITIALS BOX */}
+            {/* AVATAR — Google picture when we have one, initials otherwise */}
 
             <div
               style={{
@@ -534,20 +535,47 @@ function AccountPageContent() {
                 boxSizing: "border-box",
               }}
             >
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  border: "1px solid #d5d1c8",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "30px",
-                  letterSpacing: "-0.05em",
-                }}
-              >
-                {initials}
-              </div>
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={displayName}
+                  width={88}
+                  height={88}
+                  // Signing in with Google fills user.image with the
+                  // account's profile picture; nothing in this app ever
+                  // sets it otherwise, so email/password users keep the
+                  // initials block below.
+                  //
+                  // `unoptimized` because the source is already a
+                  // correctly sized avatar on Google's CDN. Routing it
+                  // through /_next/image would spend Render CPU to make it
+                  // no smaller, and would additionally require
+                  // lh3.googleusercontent.com in images.remotePatterns.
+                  unoptimized
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    border: "1px solid #d5d1c8",
+                    display: "block",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    border: "1px solid #d5d1c8",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "30px",
+                    letterSpacing: "-0.05em",
+                  }}
+                >
+                  {initials}
+                </div>
+              )}
 
               <span
                 style={{

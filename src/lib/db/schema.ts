@@ -40,6 +40,22 @@ export const session = pgTable("session", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+/**
+ * One row per way a user can sign in: the email/password credential
+ * (providerId "credential", hash in `password`) or a linked OAuth
+ * provider ("google").
+ *
+ * The three token/scope columns are not optional, for the same reason
+ * `verification.updated_at` isn't — see the note below. Better Auth's
+ * account model declares `accessTokenExpiresAt`, `refreshTokenExpiresAt`
+ * and `scope`, and the Drizzle adapter throws
+ * `The field "…" does not exist in the "account" Drizzle schema` for any
+ * model field with no column. That throw happens inside
+ * `createOAuthUser`, which catches it and returns "unable to create
+ * user" — so Google sign-in completed at Google, came back, and silently
+ * created nothing, landing the user back on /login. Email/password never
+ * writes those three, which is why it kept working throughout.
+ */
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -50,6 +66,9 @@ export const account = pgTable("account", {
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
   password: text("password"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
