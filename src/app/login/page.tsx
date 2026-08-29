@@ -511,20 +511,40 @@ export default function LoginPage() {
             onClick={async () => {
               setAuthError(null);
 
-              // Better Auth only registers Google when the deployment
-              // has both credentials set, so this can legitimately come
-              // back as an error rather than a redirect — say so instead
-              // of leaving the button looking inert.
               const { error } = await signIn.social({
                 provider: "google",
                 callbackURL: "/account?welcome=1",
               });
 
-              if (error) {
-                setAuthError(
-                  "GOOGLE SIGN-IN IS UNAVAILABLE — USE EMAIL AND PASSWORD"
-                );
+              if (!error) {
+                return;
               }
+
+              /*
+               * This used to report "unavailable" for every failure,
+               * which asserted a cause it had not checked. It cost real
+               * debugging time: the actual fault was a 500 from a
+               * missing `verification.updated_at` column, and the button
+               * insisted the provider was not configured.
+               *
+               * "Unavailable" is now claimed only when the provider
+               * genuinely is not registered — Better Auth answers 404
+               * for that. Anything else surfaces what the server
+               * actually said.
+               */
+              const notConfigured =
+                error.status === 404 ||
+                /provider/i.test(error.message ?? "");
+
+              setAuthError(
+                notConfigured
+                  ? "GOOGLE SIGN-IN IS UNAVAILABLE — USE EMAIL AND PASSWORD"
+                  : `GOOGLE SIGN-IN FAILED${
+                      error.status ? ` (${error.status})` : ""
+                    } — ${(
+                      error.message ?? "NO DETAIL RETURNED"
+                    ).toUpperCase()}`
+              );
             }}
           >
 

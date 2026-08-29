@@ -75,6 +75,21 @@ variable list. Set every `sync: false` variable in the dashboard before
 deploying: the build itself imports the database and Stripe clients, so
 a missing variable fails the build rather than surfacing later.
 
+Migrations are not run by the build. Apply them yourself against
+whatever database Render's `DATABASE_URL` points at — with
+`DIRECT_DATABASE_URL` set to that database's unpooled string — before
+the first deploy and after any schema change:
+
+```bash
+npx drizzle-kit migrate
+```
+
+Skipping this fails in ways that don't look like a missing migration.
+Better Auth validates its tables against the Drizzle schema at runtime,
+so one absent column takes out only the feature that touches it: a
+`verification` table without `updated_at` breaks Google sign-in with a
+500 while email/password keeps working.
+
 Two values must differ from local:
 
 - `BETTER_AUTH_URL` — **leave it unset on Render.** The app falls back to

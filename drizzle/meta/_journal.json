@@ -15,6 +15,13 @@
       "when": 1787923617728,
       "tag": "0001_buyer_hold_cap",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788008901834,
+      "tag": "0002_melted_albert_cleary",
+      "breakpoints": true
     }
   ]
 }

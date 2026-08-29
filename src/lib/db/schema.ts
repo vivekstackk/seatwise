@@ -55,12 +55,22 @@ export const account = pgTable("account", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+/**
+ * OAuth state and email-verification tokens.
+ *
+ * `updatedAt` is not optional despite nothing in this app reading it:
+ * Better Auth validates the Drizzle schema against its own model before
+ * it will write, so a missing column fails the whole social sign-in with
+ * a 500 rather than degrading. Email/password never touches this table
+ * (verification is off), which is why only "Continue with Google" broke.
+ */
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 /**
