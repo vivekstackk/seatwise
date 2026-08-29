@@ -13,21 +13,43 @@ const authVideos = [
 ];
 
 function LoginPageContent() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // `?mode=signup` opens on the create-account form. The seat map's
+  // sign-in gate links there for its CREATE ACCOUNT action, so that
+  // button lands on the form it names instead of on sign-in.
+  const [mode, setMode] = useState<"login" | "signup">(
+    searchParams.get("mode") === "signup" ? "signup" : "login"
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const { data: session, isPending } = useSession();
+
+  /*
+   * Where to go once signed in. The seat map sends people here with
+   * `?next=/events/<id>` so they land back on the seat they were trying
+   * to hold instead of on the generic listing.
+   *
+   * Only same-origin paths are honoured. An absolute URL — or a
+   * protocol-relative `//evil.example` — would turn this form into an
+   * open redirect, which is a credible phishing primitive on a page that
+   * has just asked for a password.
+   */
+  const nextParam = searchParams.get("next");
+  const nextPath =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+      ? nextParam
+      : null;
 
   useEffect(() => {
     // Already logged in — visiting /login directly (e.g. via the nav
     // link) should send them to their account, not show the form
     // again. This is what was happening before this fix.
     if (!isPending && session) {
-      router.replace("/account");
+      router.replace(nextPath ?? "/account");
     }
-  }, [isPending, session, router]);
+  }, [isPending, session, router, nextPath]);
 
   /*
    * A failed OAuth callback is a server-side redirect, so the
@@ -55,7 +77,13 @@ function LoginPageContent() {
 
   /** Drop ?error=… so a retry isn't shown alongside a stale failure. */
   const clearOauthError = () => {
-    if (oauthErrorCode) router.replace("/login");
+    if (oauthErrorCode) {
+      // Keep ?next — losing it here would silently strand a visitor who
+      // came from a seat map back on the generic events list.
+      router.replace(
+        nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"
+      );
+    }
   };
 
   const [activeVideo, setActiveVideo] = useState(0);
@@ -398,7 +426,8 @@ function LoginPageContent() {
               }
 
               router.push(
-                mode === "signup" ? "/account?welcome=1" : "/events"
+                nextPath ??
+                  (mode === "signup" ? "/account?welcome=1" : "/events")
               );
             }}
           >
@@ -545,12 +574,13 @@ function LoginPageContent() {
 
               const { error } = await signIn.social({
                 provider: "google",
-                // Returning buyer → straight to their bookings.
-                callbackURL: "/account",
+                // Returning buyer → straight to their bookings, unless
+                // they arrived from a seat map (?next=…).
+                callbackURL: nextPath ?? "/account",
                 // First Google sign-in creates the user from the Google
                 // profile (name and picture come back in the userinfo
                 // response), so it gets the welcome treatment instead.
-                newUserCallbackURL: "/account?welcome=1",
+                newUserCallbackURL: nextPath ?? "/account?welcome=1",
                 // Without this a failure inside the callback lands on
                 // Better Auth's own /api/auth/error page, which says
                 // nothing this app's user can act on. Send them back

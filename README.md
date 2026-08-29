@@ -57,6 +57,23 @@ valid tickets on one seat, so the order is left `pending` and logged as
 `seat_conflict` — an oversell to settle out of band, which is why the
 guard exists rather than a second ticket.
 
+## Booking without an account
+
+Clicking a seat while signed out opens a sign-in gate over the seat map —
+not an error. `holdSeats` and `createCheckout` **return** `{ needsAuth:
+true }` rather than throwing, because Next redacts server-action error
+messages in a production build: the drawer used to compare
+`err.message === "Not signed in"`, which worked in `next dev` and never
+once worked on the deployed site, so every signed-out visitor got
+"Something went wrong holding that seat." Being signed out is an
+ordinary outcome, so it travels as data and survives the boundary.
+
+The gate links to `/login?next=/events/<id>`, and `/login` honours
+`?next=` (same-origin paths only — an absolute or protocol-relative value
+is ignored, since an open redirect on a page that just asked for a
+password is a phishing primitive) plus `?mode=signup`, so the visitor
+lands back on the seat they were reaching for.
+
 ## Verification
 
 ```bash

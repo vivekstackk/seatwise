@@ -3967,6 +3967,141 @@ body {
 
 
 /* ============================================================
+   SIGN-IN GATE
+   ------------------------------------------------------------
+   A signed-out visitor clicking a seat. Sits over the drawer
+   rather than replacing it, so the seat map stays visible and
+   the ask reads as "one step first", not as an error. This
+   used to be a one-line "Something went wrong holding that
+   seat" — which blamed the seat map for the visitor simply not
+   having an account.
+============================================================ */
+
+.auth-gate {
+  /* `fixed`, not `absolute`: the drawer scrolls, and an absolutely
+     positioned child scrolls away with its content. The drawer carries a
+     `transform`, which makes it the containing block for fixed
+     descendants — so this pins to the drawer itself and stays put
+     however far down the seat map the user has scrolled. */
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+
+  /* Blurred rather than opaque: the seats behind stay readable, which is
+     what makes this feel like a step in the booking instead of a
+     dead end. */
+  background: rgba(28, 28, 24, 0.42);
+  backdrop-filter: blur(3px);
+
+  animation: auth-gate-in 0.22s ease both;
+}
+
+@keyframes auth-gate-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.auth-gate__card {
+  width: 100%;
+  max-width: 380px;
+
+  border: 1px solid #111;
+  padding: 34px 30px 30px;
+
+  background: #f2f0e8;
+  color: #111;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.auth-gate__eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #6b6b62;
+}
+
+.auth-gate__card strong {
+  margin-top: 16px;
+
+  font-size: 27px;
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+
+.auth-gate__card p {
+  margin-top: 18px;
+
+  color: #33332e;
+  font-size: 11px;
+  line-height: 1.9;
+  letter-spacing: 0.1em;
+}
+
+.auth-gate__actions {
+  margin-top: 30px;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-gate__primary,
+.auth-gate__secondary,
+.auth-gate__dismiss {
+  border: 1px solid #111;
+  padding: 14px 18px;
+
+  background: transparent;
+  color: #111;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-gate__primary {
+  background: #111;
+  color: #f2f0e8;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.auth-gate__dismiss {
+  border-color: transparent;
+  color: #6b6b62;
+}
+
+@media (max-width: 720px) {
+  .auth-gate__card {
+    padding: 26px 22px 22px;
+  }
+
+  .auth-gate__card strong {
+    font-size: 23px;
+  }
+}
+
+
+/* ============================================================
    CONFIRMED BOOKING
 ============================================================ */
 

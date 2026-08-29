@@ -16,6 +16,7 @@ import {
   getHeldOrSoldSeats,
   getActiveHoldsForBuyer,
   checkInTicketCore,
+  type HoldResult,
 } from "@/lib/db/holds";
 import { reconcileCheckoutSession } from "@/lib/db/fulfilment";
 
@@ -46,6 +47,24 @@ async function requireBuyerId(): Promise<string> {
 }
 
 /**
+ * Returned by the two actions a visitor can reach from the seat map
+ * before signing in.
+ *
+ * These used to throw `new Error("Not signed in")` and the drawer
+ * compared `err.message` against that string. It worked in `next dev`
+ * and never once worked on the deployed site: Next redacts server-action
+ * errors in a production build, replacing the message with a generic
+ * one so a stack trace can't leak. So the comparison always missed and
+ * every signed-out visitor who clicked a seat got "Something went wrong
+ * holding that seat. Try again." — advice that is both wrong and
+ * impossible to act on.
+ *
+ * Being signed out is an ordinary, expected outcome rather than a fault,
+ * so it is returned as data and survives the production boundary intact.
+ */
+export type NeedsAuth = { needsAuth: true };
+
+/**
  * Check-in is a gate-staff action, not a buyer action. Previously any
  * signed-in account could burn any ticket it knew the token for, which
  * made the whole "used once" guarantee decorative. Roles are set out of
@@ -69,8 +88,17 @@ async function requireStaff(): Promise<{ id: string; role: string }> {
   return { id: session.user.id, role };
 }
 
-export async function holdSeats(eventId: string, seatIds: string[]) {
-  const buyerId = await requireBuyerId();
+export async function holdSeats(
+  eventId: string,
+  seatIds: string[]
+): Promise<HoldResult | NeedsAuth> {
+  const session = await currentSession();
+
+  if (!session) {
+    return { needsAuth: true };
+  }
+
+  const buyerId = session.user.id;
 
   // Server actions are a public HTTP surface. Without this a crafted
   // request could hold a seat that doesn't exist in the grid ("Z99"),
@@ -114,8 +142,16 @@ export async function getSeatStatus(eventId: string) {
   return getHeldOrSoldSeats(eventId);
 }
 
-export async function createCheckout(eventId: string) {
-  const buyerId = await requireBuyerId();
+export async function createCheckout(
+  eventId: string
+): Promise<{ url: string } | NeedsAuth> {
+  const viewer = await currentSession();
+
+  if (!viewer) {
+    return { needsAuth: true };
+  }
+
+  const buyerId = viewer.user.id;
 
   const [event] = await db
     .select()

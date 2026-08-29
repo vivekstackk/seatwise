@@ -11,6 +11,7 @@ import {
   getOrderStatus,
   syncOrder,
 } from "@/lib/db/seats";
+import { useSession } from "@/lib/auth-client";
 import { compareSeatIds, seatRowLabels } from "@/lib/seatGrid";
 
 type Props = {
@@ -61,6 +62,12 @@ function TicketDrawerInner({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Read only to decide whether to ask for sign-in before spending a
+  // round trip on a hold that cannot succeed. The server action stays the
+  // authority — this is a UX shortcut, never the access check.
+  const { data: session, isPending: sessionPending } = useSession();
+  const signedIn = Boolean(session);
+
   const rows = useMemo(
     () => seatRowLabels(event.seatRows),
     [event.seatRows]
@@ -98,6 +105,20 @@ function TicketDrawerInner({
     useState<string | null>(null);
   const [pendingChecking, setPendingChecking] =
     useState(false);
+  // Shown when a signed-out visitor tries to book. A panel with a way
+  // out, rather than a red line reading "Something went wrong" — which is
+  // what this looked like before, and which blamed the seat map for the
+  // user simply not having an account yet.
+  const [authPrompt, setAuthPrompt] =
+    useState(false);
+
+  // Sign-in sends the visitor back to this event rather than to the
+  // generic /events list, so the seat they were reaching for is still on
+  // screen when they return.
+  const loginHref = `/login?next=${encodeURIComponent(
+    `/events/${event.id}`
+  )}`;
+  const signupHref = `${loginHref}&mode=signup`;
 
   useEffect(() => {
     if (!open) return;
@@ -258,6 +279,7 @@ function TicketDrawerInner({
     setSeatError(null);
     setIssuedTickets([]);
     setTicketPending(null);
+    setAuthPrompt(false);
   };
 
   const closeDrawer = () => {
@@ -273,10 +295,19 @@ function TicketDrawerInner({
     setTicketPending(null);
     setSeatError(null);
     setFilter("ALL");
+    setAuthPrompt(false);
   };
 
   const toggleSeat = async (seat: string) => {
     if (heldOrSoldSeats.includes(seat)) {
+      return;
+    }
+
+    // Ask up front. `sessionPending` is respected so a slow session
+    // fetch doesn't accuse a signed-in user of being signed out.
+    if (!sessionPending && !signedIn) {
+      setSeatError(null);
+      setAuthPrompt(true);
       return;
     }
 
@@ -308,6 +339,16 @@ function TicketDrawerInner({
     try {
       const result = await holdSeats(event.id, [seat]);
 
+      // The session expired between render and click, or the shortcut
+      // above was skipped because the session was still loading.
+      if ("needsAuth" in result) {
+        setSelectedSeats((current) =>
+          current.filter((item) => item !== seat)
+        );
+        setAuthPrompt(true);
+        return;
+      }
+
       if (result.held.includes(seat)) {
         return;
       }
@@ -328,11 +369,6 @@ function TicketDrawerInner({
       setSelectedSeats((current) =>
         current.filter((item) => item !== seat)
       );
-
-      if (err instanceof Error && err.message === "Not signed in") {
-        router.push("/login");
-        return;
-      }
 
       console.error("Failed to hold seat:", err);
       setSeatError("Something went wrong holding that seat. Try again.");
@@ -364,8 +400,19 @@ function TicketDrawerInner({
 
     setSeatError(null);
 
+    if (!sessionPending && !signedIn) {
+      setAuthPrompt(true);
+      return;
+    }
+
     try {
       const result = await createCheckout(event.id);
+
+      if ("needsAuth" in result) {
+        setAuthPrompt(true);
+        return;
+      }
+
       window.location.href = result.url;
     } catch (err: unknown) {
       console.error("Checkout failed:", err);
@@ -1119,6 +1166,57 @@ function TicketDrawerInner({
 
           </div>
 
+        )}
+
+        {/* =====================================================
+            SIGN-IN GATE — floats over whichever branch above is
+            showing, so the seat map stays visible behind it and
+            the user can see exactly what they were reaching for.
+        ===================================================== */}
+
+        {authPrompt && (
+          <div className="auth-gate" role="dialog" aria-modal="true">
+
+            <div className="auth-gate__card">
+
+              <span className="auth-gate__eyebrow">
+                SIGN IN REQUIRED
+              </span>
+
+              <strong>
+                A SEAT IS HELD IN YOUR NAME.
+              </strong>
+
+              <p>
+                SEATWISE HOLDS EACH SEAT FOR ONE BUYER AT A TIME, SO WE
+                NEED AN ACCOUNT TO HOLD IT AGAINST. IT TAKES A MOMENT —
+                YOU&apos;LL COME STRAIGHT BACK TO THIS SEAT MAP.
+              </p>
+
+              <div className="auth-gate__actions">
+
+                <Link href={loginHref} className="auth-gate__primary">
+                  <span>SIGN IN</span>
+                  <span>↗</span>
+                </Link>
+
+                <Link href={signupHref} className="auth-gate__secondary">
+                  CREATE ACCOUNT ↗
+                </Link>
+
+                <button
+                  type="button"
+                  className="auth-gate__dismiss"
+                  onClick={() => setAuthPrompt(false)}
+                >
+                  KEEP LOOKING
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
         )}
 
       </aside>
