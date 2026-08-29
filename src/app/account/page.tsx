@@ -188,7 +188,7 @@ function AccountPageContent() {
         >
           <span
             style={{
-              fontSize: "10px",
+              fontSize: "11px",
               letterSpacing: "0.18em",
               textTransform: "uppercase",
               opacity: 0.65,
@@ -199,7 +199,7 @@ function AccountPageContent() {
 
           <span
             style={{
-              fontSize: "9px",
+              fontSize: "10px",
               letterSpacing: "0.16em",
               textTransform: "uppercase",
               opacity: 0.4,
@@ -245,7 +245,7 @@ function AccountPageContent() {
 
             <span
               style={{
-                fontSize: "9px",
+                fontSize: "10px",
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
                 opacity: 0.55,
@@ -288,7 +288,7 @@ function AccountPageContent() {
           <p
             style={{
               maxWidth: "420px",
-              fontSize: "12px",
+              fontSize: "13px",
               lineHeight: "1.8",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
@@ -316,7 +316,7 @@ function AccountPageContent() {
             <div>
               <div
                 style={{
-                  fontSize: "8px",
+                  fontSize: "9px",
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
                   opacity: 0.4,
@@ -342,7 +342,7 @@ function AccountPageContent() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                fontSize: "8px",
+                fontSize: "9px",
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
                 opacity: 0.6,
@@ -378,7 +378,7 @@ function AccountPageContent() {
           <div>
             <div
               style={{
-                fontSize: "8px",
+                fontSize: "9px",
                 letterSpacing: "0.16em",
                 opacity: 0.35,
                 marginBottom: "7px",
@@ -389,7 +389,7 @@ function AccountPageContent() {
 
             <div
               style={{
-                fontSize: "10px",
+                fontSize: "11px",
                 letterSpacing: "0.1em",
               }}
             >
@@ -400,7 +400,7 @@ function AccountPageContent() {
           <div>
             <div
               style={{
-                fontSize: "8px",
+                fontSize: "9px",
                 letterSpacing: "0.16em",
                 opacity: 0.35,
                 marginBottom: "7px",
@@ -411,7 +411,7 @@ function AccountPageContent() {
 
             <div
               style={{
-                fontSize: "10px",
+                fontSize: "11px",
                 letterSpacing: "0.1em",
               }}
             >
@@ -422,7 +422,7 @@ function AccountPageContent() {
           <div style={{ textAlign: "right" }}>
             <div
               style={{
-                fontSize: "8px",
+                fontSize: "9px",
                 letterSpacing: "0.16em",
                 opacity: 0.35,
                 marginBottom: "7px",
@@ -433,7 +433,7 @@ function AccountPageContent() {
 
             <div
               style={{
-                fontSize: "10px",
+                fontSize: "11px",
                 letterSpacing: "0.1em",
               }}
             >
@@ -482,7 +482,7 @@ function AccountPageContent() {
               background: "#11110f",
               color: "#f1efe8",
               padding: "14px 16px",
-              fontSize: "9px",
+              fontSize: "10px",
               lineHeight: "1.5",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -608,7 +608,7 @@ function AccountPageContent() {
               <p
                 style={{
                   marginTop: "22px",
-                  fontSize: "11px",
+                  fontSize: "12px",
                   letterSpacing: "0.05em",
                   opacity: 0.65,
                 }}
@@ -636,7 +636,7 @@ function AccountPageContent() {
           >
             <span
               style={{
-                fontSize: "9px",
+                fontSize: "10px",
                 letterSpacing: "0.16em",
                 opacity: 0.5,
               }}
@@ -646,7 +646,7 @@ function AccountPageContent() {
 
             <span
               style={{
-                fontSize: "9px",
+                fontSize: "10px",
                 letterSpacing: "0.16em",
                 opacity: 0.5,
               }}
@@ -686,7 +686,7 @@ function AccountPageContent() {
           >
             <span
               style={{
-                fontSize: "9px",
+                fontSize: "10px",
                 letterSpacing: "0.16em",
                 opacity: 0.5,
               }}
@@ -696,7 +696,7 @@ function AccountPageContent() {
 
             <span
               style={{
-                fontSize: "9px",
+                fontSize: "10px",
                 letterSpacing: "0.16em",
                 opacity: 0.5,
               }}
@@ -723,7 +723,7 @@ function AccountPageContent() {
 
               <small
                 style={{
-                  fontSize: "9px",
+                  fontSize: "10px",
                   letterSpacing: "0.14em",
                   opacity: 0.5,
                 }}
@@ -753,7 +753,7 @@ function AccountPageContent() {
 
               <small
                 style={{
-                  fontSize: "9px",
+                  fontSize: "10px",
                   letterSpacing: "0.14em",
                   opacity: 0.5,
                 }}
@@ -790,7 +790,7 @@ function AccountPageContent() {
               <span
                 style={{
                   display: "block",
-                  fontSize: "9px",
+                  fontSize: "10px",
                   letterSpacing: "0.16em",
                   opacity: 0.5,
                   marginBottom: "8px",
@@ -801,7 +801,7 @@ function AccountPageContent() {
 
               <span
                 style={{
-                  fontSize: "9px",
+                  fontSize: "10px",
                   letterSpacing: "0.16em",
                   opacity: 0.5,
                 }}
@@ -823,7 +823,7 @@ function AccountPageContent() {
               <span
                 style={{
                   display: "block",
-                  fontSize: "8px",
+                  fontSize: "9px",
                   letterSpacing: "0.16em",
                   opacity: 0.45,
                   marginBottom: "10px",
@@ -834,7 +834,7 @@ function AccountPageContent() {
 
               <span
                 style={{
-                  fontSize: "12px",
+                  fontSize: "13px",
                 }}
               >
                 {user.email}

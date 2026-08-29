@@ -682,7 +682,7 @@ function TicketDrawerInner({
               {seatError && (
                 <p
                   style={{
-                    fontSize: "11px",
+                    fontSize: "12px",
                     letterSpacing: "0.05em",
                     color: "#c0392b",
                     margin: "0 0 16px",

@@ -79,7 +79,7 @@ body {
 
   border-bottom: 1px solid rgba(241, 239, 232, 0.13);
 
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -134,7 +134,7 @@ body {
 }
 
 .events-page__eyebrow {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
 
   letter-spacing: 0.22em;
@@ -229,7 +229,7 @@ body {
 
   font: inherit;
 
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
 
   letter-spacing: 0.13em;
@@ -339,7 +339,7 @@ body {
   top: 18px;
   left: 18px;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
 
   letter-spacing: 0.12em;
@@ -353,7 +353,7 @@ body {
   left: 18px;
   bottom: 18px;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
 
   letter-spacing: 0.14em;
@@ -974,11 +974,11 @@ body {
   left: 0;
   top: 0;
 
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 
-  margin-left: -5px;
-  margin-top: -5px;
+  margin-left: -4px;
+  margin-top: -4px;
 
   border-radius: 999px;
 
@@ -1006,11 +1006,14 @@ body {
   left: 0;
   top: 0;
 
-  width: 38px;
-  height: 38px;
+  /* Deliberately close to a real pointer's footprint. At 38px idle / 54px
+     hovered this read as a large cream disc that covered the very link it
+     was pointing at, which is the opposite of an affordance. */
+  width: 26px;
+  height: 26px;
 
-  margin-left: -19px;
-  margin-top: -19px;
+  margin-left: -13px;
+  margin-top: -13px;
 
   border: 1px solid rgba(241, 239, 232, 0.3);
 
@@ -1034,22 +1037,22 @@ body {
 ========================================================= */
 
 .global-cursor--active .global-cursor-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 
-  margin-left: -3.5px;
-  margin-top: -3.5px;
+  margin-left: -3px;
+  margin-top: -3px;
 
   background: #11110f;
 }
 
 
 .global-cursor--active .global-cursor-ring {
-  width: 54px;
-  height: 54px;
+  width: 32px;
+  height: 32px;
 
-  margin-left: -27px;
-  margin-top: -27px;
+  margin-left: -16px;
+  margin-top: -16px;
 
   background: #f1efe8;
 
@@ -1117,7 +1120,7 @@ body {
 }
 
 .seatwise-menu-trigger__label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 
   line-height: 1;
@@ -1303,7 +1306,7 @@ body {
 .seatwise-menu__edition {
   margin-top: 8px;
 
-  font-size: 8px;
+  font-size: 9px;
 
   letter-spacing: 0.2em;
 
@@ -1373,7 +1376,7 @@ body {
 
   padding-top: 22px;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
 
   letter-spacing: 0.16em;
@@ -1404,7 +1407,7 @@ body {
 /* Meta */
 
 .seatwise-menu__meta {
-  font-size: 8px;
+  font-size: 9px;
 
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1634,7 +1637,7 @@ body {
 
   color: #f1efe8;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 
   letter-spacing: 0.13em;
@@ -1653,7 +1656,7 @@ body {
   right: 0;
   bottom: 13px;
 
-  font-size: 10px;
+  font-size: 11px;
 
   color: #d8763d;
 
@@ -1682,7 +1685,7 @@ body {
 
   color: #f1efe8;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 
   letter-spacing: 0.13em;
@@ -1809,7 +1812,7 @@ body {
 
   color: #f1efe8;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
 
   letter-spacing: 0.16em;
@@ -1936,7 +1939,7 @@ body {
 
   color: #f1efe8;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
 
   letter-spacing: 0.16em;
@@ -1999,7 +2002,7 @@ body {
 
   margin-bottom: 55px;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
 
   letter-spacing: 0.18em;
@@ -2075,7 +2078,7 @@ body {
 }
 
 .event-detail__meta strong {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 
   letter-spacing: 0.06em;
@@ -2149,7 +2152,7 @@ body {
   max-width: 420px;
   margin: 0;
 
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   letter-spacing: 0.04em;
 
@@ -2176,7 +2179,7 @@ body {
   background: #f1efe8;
   color: #11110f;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
 
@@ -2244,7 +2247,7 @@ body {
 .ticket-drawer__top {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
@@ -2260,7 +2263,7 @@ body {
 
 .ticket-drawer__event > span,
 .ticket-drawer__ticket small {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   opacity: 0.5;
 }
@@ -2273,7 +2276,7 @@ body {
 }
 
 .ticket-drawer__event p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
 }
 
@@ -2319,7 +2322,7 @@ body {
 }
 
 .ticket-total span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
 }
 
@@ -2342,7 +2345,7 @@ body {
 .ticket-drawer__bottom > small {
   display: block;
   margin-top: 14px;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.12em;
   opacity: 0.45;
 }
@@ -2362,7 +2365,7 @@ body {
 }
 
 .digital-ticket__top {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
 }
 
@@ -2374,7 +2377,7 @@ body {
 
 .digital-ticket__status {
   margin: 55px 0 18px;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
 }
 
@@ -2388,13 +2391,13 @@ body {
 }
 
 .digital-ticket__brand {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.13em;
 }
 
 .digital-ticket__index {
   margin-top: 55px;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.16em;
   opacity: 0.5;
 }
@@ -2422,7 +2425,7 @@ body {
 }
 
 .digital-ticket__details strong {
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
 }
 
@@ -2477,7 +2480,7 @@ body {
 .digital-ticket__qr span {
   padding: 5px;
   background: #f1efe8;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -2527,7 +2530,7 @@ body {
 
 .seat-selection__heading span {
   display: block;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.18em;
   color: #77746d;
   margin-bottom: 8px;
@@ -2540,7 +2543,7 @@ body {
 }
 
 .seat-selection__counter {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.12em;
 }
 
@@ -2553,7 +2556,7 @@ body {
   padding: 9px;
   text-align: center;
   border-top: 2px solid #111;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.2em;
 }
 
@@ -2574,7 +2577,7 @@ body {
 
 .seat-row__label {
   width: 12px;
-  font-size: 9px;
+  font-size: 10px;
   color: #77746d;
 }
 
@@ -2592,7 +2595,7 @@ body {
   background: transparent;
   color: #111;
   font-family: inherit;
-  font-size: 8px;
+  font-size: 9px;
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -2633,7 +2636,7 @@ body {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.1em;
   color: #77746d;
 }
@@ -2672,7 +2675,7 @@ body {
 
 .selected-seats span {
   display: block;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.16em;
   color: #77746d;
   margin-bottom: 9px;
@@ -2702,7 +2705,7 @@ body {
 
 .booking-confirmed__message {
   margin-top: 70px;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
@@ -2717,14 +2720,14 @@ body {
 .booking-ticket__top {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.12em;
 }
 
 .booking-ticket__label {
   display: block;
   margin-top: 70px;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.17em;
   color: #77746d;
 }
@@ -2745,7 +2748,7 @@ body {
 
 .booking-ticket__details span {
   display: block;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.15em;
   color: #77746d;
   margin-bottom: 8px;
@@ -2789,7 +2792,7 @@ body {
   display: grid;
   place-items: center;
   border: 5px dotted #111;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -2867,7 +2870,7 @@ body {
   color: #111;
   padding: 9px 13px;
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   cursor: pointer;
 }
@@ -2916,7 +2919,7 @@ body {
 .seat-map__empty {
   padding: 60px 20px;
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   color: rgba(0, 0, 0, 0.5);
 }
@@ -2938,7 +2941,7 @@ body {
   position: absolute;
   top: 2px;
   right: 4px;
-  font-size: 8px;
+  font-size: 9px;
   line-height: 1;
   font-style: normal;
 }
@@ -2959,7 +2962,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.08em;
 }
 
@@ -3007,7 +3010,7 @@ body {
 }
 
 .booking-ticket__bill span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.12em;
 }
 
@@ -3034,7 +3037,7 @@ body {
   display: block;
   margin-top: 10px;
   margin-bottom: 4px;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.12em;
   color: rgba(0, 0, 0, 0.5);
 }
@@ -3082,7 +3085,7 @@ body {
   align-items: center;
   padding: 0 20px;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   cursor: pointer;
 }
@@ -3252,7 +3255,7 @@ body {
   justify-content: space-between;
   align-items: center;
 
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -3281,7 +3284,7 @@ body {
 
   margin-bottom: 25px;
 
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   color: #888;
 }
@@ -3299,7 +3302,7 @@ body {
 .ticket-drawer__event p {
   margin-top: 30px;
 
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3330,7 +3333,7 @@ body {
 
   margin-bottom: 12px;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   color: #888;
 }
@@ -3344,7 +3347,7 @@ body {
 }
 
 .seat-selection__counter {
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.1em;
 }
 
@@ -3375,7 +3378,7 @@ body {
   color: #111;
 
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 
   cursor: pointer;
@@ -3402,7 +3405,7 @@ body {
 
   text-align: center;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.22em;
 }
 
@@ -3440,7 +3443,7 @@ body {
   width: 30px;
   flex: 0 0 30px;
 
-  font-size: 10px;
+  font-size: 11px;
   color: #777;
 }
 
@@ -3465,7 +3468,7 @@ body {
   color: #111;
 
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
 
   cursor: pointer;
 
@@ -3503,7 +3506,7 @@ body {
   top: 3px;
   right: 5px;
 
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1;
 }
 
@@ -3523,7 +3526,7 @@ body {
 
   padding: 18px 0;
 
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.1em;
 }
 
@@ -3585,7 +3588,7 @@ body {
 }
 
 .selected-seats span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   color: #777;
 }
@@ -3613,7 +3616,7 @@ body {
 }
 
 .ticket-total span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.16em;
 }
 
@@ -3670,7 +3673,7 @@ body {
 
   text-align: center;
 
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.12em;
   color: #888;
 }
@@ -3696,7 +3699,7 @@ body {
   display: flex;
   justify-content: space-between;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
@@ -3727,7 +3730,7 @@ body {
 }
 
 .ticket-printing__paper-title {
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.18em;
 }
 
@@ -3746,7 +3749,7 @@ body {
 
   margin-top: 50px;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.1em;
 }
 
@@ -3793,7 +3796,7 @@ body {
 .ticket-printing__status {
   margin-top: 30px;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.18em;
 }
 
@@ -3871,7 +3874,7 @@ body {
 }
 
 .ticket-pending__eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: #6b6b62;
 }
@@ -3895,7 +3898,7 @@ body {
      paragraph is the explanation of what went wrong, so it has to be
      legible. */
   color: #33332e;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.85;
   letter-spacing: 0.1em;
 }
@@ -3905,7 +3908,7 @@ body {
   border: 1px solid #c9c6bc;
   padding: 8px 14px;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: #6b6b62;
 }
@@ -3913,7 +3916,7 @@ body {
 .ticket-pending__error {
   margin-top: 20px;
 
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   color: #8a2f24;
 }
@@ -3936,7 +3939,7 @@ body {
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   text-decoration: none;
   cursor: pointer;
@@ -4027,7 +4030,7 @@ body {
 }
 
 .auth-gate__eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: #6b6b62;
 }
@@ -4045,7 +4048,7 @@ body {
   margin-top: 18px;
 
   color: #33332e;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.9;
   letter-spacing: 0.1em;
 }
@@ -4068,7 +4071,7 @@ body {
   background: transparent;
   color: #111;
   font: inherit;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   text-align: center;
   text-decoration: none;
@@ -4113,7 +4116,7 @@ body {
 .booking-confirmed__message {
   padding: 20px 40px 25px;
 
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.14em;
 }
 
@@ -4145,7 +4148,7 @@ body {
   display: flex;
   justify-content: space-between;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
@@ -4154,7 +4157,7 @@ body {
 
   padding: 45px 32px 0;
 
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   color: #888;
 }
@@ -4183,7 +4186,7 @@ body {
 }
 
 .booking-ticket__details span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   color: #888;
 }
@@ -4256,7 +4259,7 @@ body {
 }
 
 .booking-ticket__bottom small {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   color: #888;
 }
@@ -4312,7 +4315,7 @@ body {
 
   background: #f2f0e8;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -4451,7 +4454,7 @@ body {
 
   border-radius: 2px;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
 
@@ -4517,7 +4520,7 @@ body {
 
 .my-tickets-kicker,
 .my-tickets-header__right span {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   opacity: 0.65;
@@ -4547,7 +4550,7 @@ body {
 .my-tickets-header__right a {
   color: #f2f0e9;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border-bottom: 1px solid rgba(242, 240, 233, 0.4);
@@ -4573,7 +4576,7 @@ body {
 }
 
 .my-tickets-intro span {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   opacity: 0.55;
 }
@@ -4623,7 +4626,7 @@ body {
 }
 
 .my-tickets-empty > div:last-child > span {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   opacity: 0.6;
 }
@@ -4646,7 +4649,7 @@ body {
   background: #f2f0e9;
   color: #10100f;
   text-decoration: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   transition:
@@ -4706,7 +4709,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
   border-bottom: 1px solid rgba(16, 16, 15, 0.22);
 }
@@ -4745,7 +4748,7 @@ body {
   padding: 8px 10px;
   background: #10100f;
   color: #f2f0e9;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
 }
 
@@ -4754,7 +4757,7 @@ body {
 }
 
 .saved-ticket__label {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.17em;
   opacity: 0.55;
 }
@@ -4781,13 +4784,13 @@ body {
 }
 
 .saved-ticket__details span {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.17em;
   opacity: 0.5;
 }
 
 .saved-ticket__details strong {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -4837,7 +4840,7 @@ body {
 }
 
 .saved-ticket__bottom small {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.12em;
   opacity: 0.5;
 }
@@ -4857,7 +4860,7 @@ body {
   border: none;
   background: #10100f;
   color: #f2f0e9;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   cursor: pointer;
@@ -4924,7 +4927,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
@@ -4939,7 +4942,7 @@ body {
 
 .ticket-viewer__status {
   padding: 35px 10px 25px;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.16em;
 }
 
@@ -4961,13 +4964,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.15em;
 }
 
 .large-ticket__label {
   padding: 45px 35px 0;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.18em;
   opacity: 0.5;
 }
@@ -4995,7 +4998,7 @@ body {
 }
 
 .large-ticket__details span {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.17em;
   opacity: 0.5;
 }
@@ -5052,7 +5055,7 @@ body {
 }
 
 .large-ticket__bottom small {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.14em;
   opacity: 0.5;
 }
@@ -5079,7 +5082,7 @@ body {
       transparent 28%
     );
   background-size: 15px 15px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -5099,7 +5102,7 @@ body {
   content: "SW";
   position: absolute;
   z-index: 2;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -5117,7 +5120,7 @@ body {
 }
 
 .large-ticket__footer span {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.13em;
   opacity: 0.5;
 }
@@ -5133,7 +5136,7 @@ body {
   border: none;
   background: #10100f;
   color: #f2f0e9;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.13em;
   cursor: pointer;
@@ -5157,7 +5160,7 @@ body {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid rgba(242, 240, 233, 0.18);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.15em;
   opacity: 0.5;
 }
@@ -5290,7 +5293,7 @@ body {
   background: #101010;
   color: #f2f0e9;
   border: 1px solid #101010;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-align: left;
@@ -5310,7 +5313,7 @@ body {
   background: #10100f;
   color: #f2f0e9;
   border: 1px solid #10100f;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.13em;
   cursor: pointer;
@@ -5332,7 +5335,7 @@ body {
   color: #f2f0e9;
   border: 1px solid #101010;
   padding: 20px 24px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-align: left;
@@ -5398,12 +5401,12 @@ body {
 }
 
 .auth-brand sup {
-  font-size: 8px;
+  font-size: 9px;
   margin-left: 3px;
 }
 
 .auth-edition {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.18em;
   opacity: 0.5;
 }
@@ -5414,7 +5417,7 @@ body {
   color: #f2f0e9;
   text-decoration: none;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
 }
@@ -5612,7 +5615,7 @@ body {
 ========================================================= */
 
 .auth-eyebrow {
-  font-size: 10px;
+  font-size: 11px;
 
   letter-spacing: 0.18em;
 
@@ -5653,7 +5656,7 @@ body {
 
   margin: 0 0 35px;
 
-  font-size: 11px;
+  font-size: 12px;
 
   line-height: 1.8;
 
@@ -5672,7 +5675,7 @@ body {
 
   gap: 35px;
 
-  font-size: 9px;
+  font-size: 10px;
 
   letter-spacing: 0.18em;
 
@@ -5728,7 +5731,7 @@ body {
 }
 
 .auth-form-header span:first-child {
-  font-size: 10px;
+  font-size: 11px;
 
   letter-spacing: 0.18em;
 
@@ -5742,7 +5745,7 @@ body {
 }
 
 .auth-form-number {
-  font-size: 11px;
+  font-size: 12px;
 
   letter-spacing: 0.15em;
 
@@ -5769,7 +5772,7 @@ body {
 
   margin-bottom: 9px;
 
-  font-size: 9px;
+  font-size: 10px;
 
   font-weight: 600;
 
@@ -5836,7 +5839,7 @@ body {
 
   font-family: inherit;
 
-  font-size: 9px;
+  font-size: 10px;
 
   letter-spacing: 0.12em;
 
@@ -5886,7 +5889,7 @@ body {
 
   font-family: inherit;
 
-  font-size: 11px;
+  font-size: 12px;
 
   font-weight: 600;
 
@@ -5933,7 +5936,7 @@ body {
 }
 
 .auth-divider small {
-  font-size: 8px;
+  font-size: 9px;
 
   opacity: 0.4;
 }
@@ -5966,7 +5969,7 @@ body {
 
   font-family: inherit;
 
-  font-size: 10px;
+  font-size: 11px;
 
   font-weight: 600;
 
@@ -5995,7 +5998,7 @@ body {
 
   justify-content: center;
 
-  font-size: 11px;
+  font-size: 12px;
 
   font-weight: 700;
 }
@@ -6022,7 +6025,7 @@ body {
 }
 
 .auth-switch span {
-  font-size: 9px;
+  font-size: 10px;
 
   letter-spacing: 0.1em;
 
@@ -6042,7 +6045,7 @@ body {
 
   font-family: inherit;
 
-  font-size: 9px;
+  font-size: 10px;
 
   font-weight: 700;
 
@@ -6063,7 +6066,7 @@ body {
 
   border-top: 1px solid rgba(242, 240, 233, 0.14);
 
-  font-size: 9px;
+  font-size: 10px;
 
   letter-spacing: 0.15em;
 
@@ -6092,7 +6095,7 @@ body {
   }
 
   .auth-back {
-    font-size: 10px;
+    font-size: 11px;
   }
 
 
@@ -6223,7 +6226,7 @@ body {
 
     z-index: 3;
 
-    font-size: 9px;
+    font-size: 10px;
 
     max-width: 330px;
 
@@ -6244,7 +6247,7 @@ body {
 
     gap: 20px;
 
-    font-size: 8px;
+    font-size: 9px;
   }
 
 
@@ -6334,13 +6337,13 @@ body {
 }
 
 .payment-brand sup {
-  font-size: 9px;
+  font-size: 10px;
   margin-left: 2px;
 }
 
 .payment-edition {
   color: rgba(243, 240, 233, 0.48);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 2px;
 }
 
@@ -6348,7 +6351,7 @@ body {
   justify-self: end;
   color: #f3f0e9;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -6382,7 +6385,7 @@ body {
 
 .payment-eyebrow {
   color: rgba(243, 240, 233, 0.5);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 2px;
   font-weight: 600;
 }
@@ -6407,7 +6410,7 @@ body {
   margin: 0 0 7vh;
 
   color: rgba(243, 240, 233, 0.55);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
   letter-spacing: 1.4px;
 }
@@ -6436,7 +6439,7 @@ body {
 .payment-event-top span,
 .payment-event small {
   color: rgba(243, 240, 233, 0.43);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.8px;
 }
 
@@ -6467,7 +6470,7 @@ body {
 }
 
 .payment-event strong {
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.7px;
 }
 
@@ -6488,7 +6491,7 @@ body {
 
   color: rgba(243, 240, 233, 0.4);
 
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
 }
 
@@ -6531,7 +6534,7 @@ body {
 
   color: rgba(17, 17, 17, 0.48);
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 2px;
 }
 
@@ -6587,7 +6590,7 @@ body {
 }
 
 .payment-method span {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 1px;
   opacity: 0.45;
 }
@@ -6595,7 +6598,7 @@ body {
 .payment-method strong {
   margin-top: 7px;
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 
@@ -6621,7 +6624,7 @@ body {
 }
 
 .payment-content-heading span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.7px;
   color: rgba(17, 17, 17, 0.5);
 }
@@ -6642,7 +6645,7 @@ body {
 }
 
 .payment-field span {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.6px;
   color: rgba(17, 17, 17, 0.55);
 }
@@ -6694,7 +6697,7 @@ body {
 }
 
 .payment-upi-note span {
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .payment-upi-note p {
@@ -6702,7 +6705,7 @@ body {
 
   color: rgba(17, 17, 17, 0.55);
 
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -6726,7 +6729,7 @@ body {
 
   cursor: pointer;
 
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -6759,7 +6762,7 @@ body {
 
   color: rgba(17, 17, 17, 0.5);
 
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
 }
 
@@ -6798,7 +6801,7 @@ body {
 
   cursor: pointer;
 
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.5px;
 
@@ -6829,7 +6832,7 @@ body {
 
   color: rgba(17, 17, 17, 0.4);
 
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 1.5px;
 }
 
@@ -6851,7 +6854,7 @@ body {
 
   color: rgba(243, 240, 233, 0.4);
 
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1.5px;
 }
 
@@ -6986,7 +6989,7 @@ body {
 }
 
 .account-drawer__field span {
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -7043,7 +7046,7 @@ body {
 
   padding: 18px 20px;
 
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.6;
   font-weight: 500;
 
@@ -7092,7 +7095,7 @@ body {
   justify-content: space-between;
 
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 
   letter-spacing: 0.09em;
@@ -7177,7 +7180,7 @@ body {
   justify-content: space-between;
 
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 
   letter-spacing: 0.09em;
@@ -7244,7 +7247,7 @@ body {
   color: #11110f;
 
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
 
   letter-spacing: 0.14em;
@@ -7286,7 +7289,7 @@ body {
 
   margin-bottom: 24px;
 
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1;
 
   letter-spacing: 0.18em;
@@ -7313,7 +7316,7 @@ body {
 .ticket-drawer__event p {
   margin: 28px 0 0;
 
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
 
   letter-spacing: 0.04em;
@@ -7387,7 +7390,7 @@ body {
   align-items: center;
   gap: 10px;
 
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -7452,7 +7455,7 @@ body {
 
 /* Small bottom status */
 .account-loading__status {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 
@@ -7586,7 +7589,7 @@ body {
 
 .booking-ticket__qr-item figcaption {
   margin-top: 4px;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.12em;
   color: #10100f;
@@ -7602,7 +7605,7 @@ body {
 .large-ticket__qr-strip > span {
   display: block;
   margin-bottom: 12px;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 0.14em;
   opacity: 0.55;
 }
@@ -7629,7 +7632,7 @@ body {
 
 .large-ticket__qr-strip figcaption {
   margin-top: 5px;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -7638,7 +7641,7 @@ body {
   margin: 24px 0 0;
   padding: 18px 20px;
   border: 1px solid rgba(16, 16, 15, 0.25);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-align: center;
@@ -7657,7 +7660,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   padding-bottom: 14px;
@@ -7685,7 +7688,7 @@ body {
   justify-content: space-between;
   gap: 12px;
   margin: 18px 0 26px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
   opacity: 0.6;
@@ -7718,7 +7721,7 @@ body {
   display: grid;
   place-items: center;
   color: #f2f0e9;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.18em;
   opacity: 0.5;
@@ -7742,7 +7745,7 @@ body {
   background: #10100f;
   color: #f2f0e9;
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   cursor: pointer;
@@ -7762,7 +7765,7 @@ body {
 .checkin__manual label {
   display: block;
   margin-bottom: 10px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   opacity: 0.6;
@@ -7775,7 +7778,7 @@ body {
   border: 1px solid rgba(16, 16, 15, 0.35);
   background: transparent;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+  font-size: 13px;
   box-sizing: border-box;
   resize: vertical;
 }
@@ -7784,7 +7787,7 @@ body {
   padding: 12px 14px;
   border-left: 3px solid #b23b2e;
   background: rgba(178, 59, 46, 0.08);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
@@ -7828,7 +7831,7 @@ body {
 }
 .checkin__note {
   margin: 22px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -7856,7 +7859,7 @@ body {
   justify-content: space-between;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(16, 16, 15, 0.2);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.18em;
 }
@@ -7894,7 +7897,7 @@ body {
   justify-content: space-between;
   gap: 16px;
   margin-top: 22px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
 }
@@ -7904,7 +7907,7 @@ body {
   background: #10100f;
   color: #f2f0e9;
   text-decoration: none;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
 }
@@ -7924,7 +7927,7 @@ body {
 }
 
 .organizer__stats span {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   opacity: 0.55;
@@ -7984,7 +7987,7 @@ body {
   padding: 2px 6px;
   background: rgba(16, 16, 15, 0.08);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+  font-size: 13px;
 }
 .organizer__list {
   display: grid;
@@ -8010,7 +8013,7 @@ body {
 
 .organizer-row__number {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   opacity: 0.45;
 }
@@ -8025,7 +8028,7 @@ body {
 
 .organizer-row__main p {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   opacity: 0.65;
 }
@@ -8036,7 +8039,7 @@ body {
 }
 
 .organizer-row__figures span {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   opacity: 0.55;
@@ -8065,7 +8068,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
 }
@@ -8089,7 +8092,7 @@ body {
   background: transparent;
   color: #10100f;
   font-family: inherit;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
   cursor: pointer;
@@ -8118,7 +8121,7 @@ body {
 .organizer-row__error {
   flex-basis: 100%;
   color: #b23b2e;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   letter-spacing: 0;
   text-transform: none;
@@ -8148,7 +8151,7 @@ body {
 
 .organizer-field > span,
 .organizer-field > legend {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   opacity: 0.6;
@@ -8156,7 +8159,7 @@ body {
 }
 
 .organizer-field small {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   opacity: 0.55;
 }
@@ -8260,7 +8263,7 @@ body {
   background: #10100f;
   color: #f2f0e9;
   font-family: inherit;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   cursor: pointer;
@@ -8272,7 +8275,7 @@ body {
 
 .organizer-form__actions a {
   color: inherit;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-decoration: none;
@@ -8310,7 +8313,7 @@ body {
   padding: 10px 12px;
   border-bottom: 1px solid rgba(16, 16, 15, 0.35);
   text-align: left;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.18em;
   opacity: 0.6;
