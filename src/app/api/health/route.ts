@@ -58,6 +58,13 @@ export async function GET() {
           ? "configured"
           : "disabled",
       googleRedirectUri: `${getAppOrigin()}/api/auth/callback/google`,
+      // Last six characters only — enough to confirm this deployment is
+      // using the same OAuth client you edited in the console, which is
+      // the other common cause of redirect_uri_mismatch: the URI was
+      // registered on a different client.
+      googleClientIdTail: process.env.GOOGLE_CLIENT_ID
+        ? `…${process.env.GOOGLE_CLIENT_ID.slice(-6)}`
+        : null,
     },
     {
       status: missingEnv.length === 0 ? 200 : 503,

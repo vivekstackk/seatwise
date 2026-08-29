@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
 import { getAppOrigin } from "@/lib/appUrl";
@@ -17,6 +17,7 @@ import {
   getActiveHoldsForBuyer,
   checkInTicketCore,
 } from "@/lib/db/holds";
+import { reconcileCheckoutSession } from "@/lib/db/fulfilment";
 
 /**
  * Better Auth throws rather than returning null when the request is
@@ -189,6 +190,23 @@ export async function getOrderStatus(sessionId: string) {
     .where(eq(orders.stripeSessionId, sessionId));
 
   if (!order) return { status: "not_found" as const };
+
+  // This returns scannable QR codes, so it must belong to the caller.
+  // It used to take a Stripe session id and nothing else, which made a
+  // valid ticket readable by anyone who got hold of one. "not_found"
+  // rather than an error because a wrong owner shouldn't learn that the
+  // order exists — and because the drawer treats it as "keep waiting"
+  // rather than as a crash.
+  const viewer = await currentSession();
+  if (!viewer || viewer.user.id !== order.buyerId) {
+    return { status: "not_found" as const };
+  }
+
+  // The webhook is Stripe pushing to us, and it can simply never arrive
+  // — no listener locally, no endpoint registered on the hosted origin,
+  // or a stale signing secret rejecting every delivery. `syncOrder`
+  // below is the pull side; this stays a cheap read so the drawer can
+  // poll it without hitting the Stripe API forty times a minute.
   if (order.status !== "paid") return { status: "pending" as const };
 
   const orderTickets = await db
@@ -215,6 +233,38 @@ export async function getOrderStatus(sessionId: string) {
 }
 
 /**
+ * Same answer as `getOrderStatus`, but asks Stripe first whether the
+ * session was actually paid and issues the tickets on the spot if it
+ * was. The pull half of fulfilment: it needs no webhook delivery, no
+ * signature and no publicly reachable endpoint — only the session id the
+ * buyer was redirected back with.
+ *
+ * Kept separate from `getOrderStatus` so the checkout drawer can poll
+ * the cheap database read every 1.5s and spend a Stripe API call only
+ * occasionally.
+ */
+export async function syncOrder(sessionId: string) {
+  const [order] = await db
+    .select({ buyerId: orders.buyerId, status: orders.status })
+    .from(orders)
+    .where(eq(orders.stripeSessionId, sessionId));
+
+  if (order && order.status !== "paid") {
+    const viewer = await currentSession();
+
+    // Only the buyer can trigger a reconcile. It is idempotent and only
+    // ever does what Stripe already authorised, but it is still a write
+    // and it costs an API call, so it is not left open to anyone holding
+    // a session id.
+    if (viewer && viewer.user.id === order.buyerId) {
+      await reconcileCheckoutSession(sessionId);
+    }
+  }
+
+  return getOrderStatus(sessionId);
+}
+
+/**
  * Real tickets for the logged-in buyer, grouped by order (one card per
  * booking, matching multiple seats bought together), joined with event
  * data. isExpired is computed from the event's real starts_at, not
@@ -231,6 +281,34 @@ export async function getOrderStatus(sessionId: string) {
  */
 export async function getMyTickets() {
   const buyerId = await requireBuyerId();
+
+  // Recover this buyer's paid-but-unfulfilled orders before reading.
+  // Without this, an order whose webhook never landed is invisible here
+  // forever — the page showed "00 BOOKINGS" to someone who had paid.
+  //
+  // Deliberately recent-only. Fulfilment refuses to ticket a seat that
+  // has since been sold to someone else, so retrying an ancient order
+  // is safe but pointless: it can only ever come back as a conflict,
+  // and it costs a Stripe API call on every page load to find that out.
+  const stalePending = await db
+    .select({ stripeSessionId: orders.stripeSessionId })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.buyerId, buyerId),
+        eq(orders.status, "pending"),
+        isNotNull(orders.stripeSessionId),
+        gte(orders.createdAt, new Date(Date.now() - 3 * 24 * 60 * 60 * 1000))
+      )
+    )
+    .orderBy(desc(orders.createdAt))
+    .limit(5);
+
+  for (const pending of stalePending) {
+    if (pending.stripeSessionId) {
+      await reconcileCheckoutSession(pending.stripeSessionId);
+    }
+  }
 
   const rows = await db
     .select({

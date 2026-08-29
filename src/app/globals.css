@@ -3873,7 +3873,7 @@ body {
 .ticket-pending__eyebrow {
   font-size: 10px;
   letter-spacing: 0.2em;
-  opacity: 0.55;
+  color: #6b6b62;
 }
 
 .ticket-pending__body strong {
@@ -3889,28 +3889,33 @@ body {
   margin-top: 22px;
   max-width: 42ch;
 
-  font-size: 11px;
-  line-height: 1.9;
-  letter-spacing: 0.12em;
-  opacity: 0.7;
+  /* Explicit colour rather than `inherit` + opacity: the drawer's own
+     text colour is set on an ancestor, and at 11px uppercase with wide
+     tracking a faded grey reads as barely-there placeholder text. This
+     paragraph is the explanation of what went wrong, so it has to be
+     legible. */
+  color: #33332e;
+  font-size: 12px;
+  line-height: 1.85;
+  letter-spacing: 0.1em;
 }
 
 .ticket-pending__ref {
   margin-top: 26px;
-  border: 1px solid currentColor;
+  border: 1px solid #c9c6bc;
   padding: 8px 14px;
 
   font-size: 10px;
   letter-spacing: 0.2em;
-  opacity: 0.6;
+  color: #6b6b62;
 }
 
 .ticket-pending__error {
   margin-top: 20px;
 
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  opacity: 0.85;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #8a2f24;
 }
 
 .ticket-pending__actions {

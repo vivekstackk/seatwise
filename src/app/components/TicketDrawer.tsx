@@ -9,6 +9,7 @@ import {
   getSeatStatus,
   createCheckout,
   getOrderStatus,
+  syncOrder,
 } from "@/lib/db/seats";
 import { compareSeatIds, seatRowLabels } from "@/lib/seatGrid";
 
@@ -161,7 +162,14 @@ function TicketDrawerInner({
       let result: Awaited<ReturnType<typeof getOrderStatus>> | null = null;
 
       try {
-        result = await getOrderStatus(sessionId);
+        // First attempt, then roughly every 12s: ask Stripe directly
+        // rather than waiting for its webhook, which may never arrive at
+        // all. In between, read the database — that costs nothing and
+        // catches the webhook landing on its own.
+        result =
+          attempts === 1 || attempts % 8 === 0
+            ? await syncOrder(sessionId)
+            : await getOrderStatus(sessionId);
       } catch (err) {
         // A throw here used to kill the callback before it could reach
         // the give-up branch below, so one failed round trip left the
@@ -198,9 +206,9 @@ function TicketDrawerInner({
   }, [searchParams, event.id, router]);
 
   /**
-   * Re-check a payment that finished without a ticket. Same lookup the
-   * poll does, on demand — the webhook may simply have been slow, or may
-   * have been replayed since (`stripe events resend`).
+   * Re-check a payment that finished without a ticket. Goes to Stripe,
+   * not just to the database, so this actually issues the ticket if the
+   * payment did succeed and only the webhook went missing.
    */
   const recheckTicket = async () => {
     if (!ticketPending || pendingChecking) {
@@ -211,7 +219,7 @@ function TicketDrawerInner({
     setSeatError(null);
 
     try {
-      const result = await getOrderStatus(ticketPending);
+      const result = await syncOrder(ticketPending);
 
       if (result.status === "paid") {
         setSelectedSeats(result.seats);
@@ -514,10 +522,10 @@ function TicketDrawerInner({
               </strong>
 
               <p>
-                STRIPE CONFIRMS A PAYMENT IN A SEPARATE CALL TO THIS
-                SERVER, AND THAT CALL HASN&apos;T ARRIVED. NOTHING IS
-                LOST — YOUR ORDER IS RECORDED AND THE TICKET APPEARS IN
-                MY TICKETS THE MOMENT IT LANDS.
+                WE ASKED STRIPE DIRECTLY AND IT HASN&apos;T CONFIRMED THIS
+                PAYMENT YET. NOTHING IS LOST — YOUR ORDER AND ITS
+                REFERENCE ARE SAVED, AND THE TICKET APPEARS IN MY TICKETS
+                AS SOON AS THE PAYMENT CLEARS.
               </p>
 
               <span className="ticket-pending__ref">

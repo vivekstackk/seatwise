@@ -36,22 +36,26 @@ reject every event — payment succeeds and no ticket is ever issued.
 
 ### When a payment leaves no ticket
 
-That is what an unprocessed webhook looks like from the outside: the
-order row stays `status = 'pending'` with zero tickets, `/my-tickets` is
-empty, and the checkout drawer stops on a "PAYMENT TAKEN / YOUR TICKET
-ISN'T ISSUED YET" panel with a CHECK AGAIN button. Nothing is lost —
-the order and its Stripe session id are recorded.
+The webhook is not the only way an order gets fulfilled. Returning from
+Checkout, and loading `/my-tickets`, both ask Stripe directly whether the
+session was paid and issue the tickets on the spot — so a missing
+listener, an unregistered endpoint or a stale `whsec_…` no longer means a
+paid order with no ticket. Fulfilment is idempotent, so the push and pull
+paths can race harmlessly.
 
-Fix the listener (or the hosted endpoint's secret), then replay the
-event:
+Register the webhook anyway: it is the fast path, and the pull only runs
+while someone is looking.
 
-```bash
-stripe events resend <evt_…>
-```
+If the payment genuinely has not cleared, the drawer stops on a "PAYMENT
+TAKEN / YOUR TICKET ISN'T ISSUED YET" panel with the order reference and
+a CHECK AGAIN button, rather than an animation that never ends.
 
-The webhook is idempotent — unique `stripe_session_id` and
-`idempotency_key` — so replaying a delivery that already succeeded is
-safe and issues nothing twice.
+One case fulfilment refuses: a seat that has since been ticketed on
+another order. That happens when an old order was paid, never fulfilled,
+its hold expired, and the seat was resold. Issuing there would put two
+valid tickets on one seat, so the order is left `pending` and logged as
+`seat_conflict` — an oversell to settle out of band, which is why the
+guard exists rather than a second ticket.
 
 ## Verification
 
