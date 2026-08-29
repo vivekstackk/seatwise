@@ -37,16 +37,20 @@ services:
       - key: DATABASE_URL
         sync: false
 
-      # Better Auth. BETTER_AUTH_URL must be the deployed origin — if it
-      # is left as localhost, sign-in redirects and Stripe's success_url
-      # both point at the developer's machine.
+      # Better Auth. BETTER_AUTH_URL is OPTIONAL on Render: when it is
+      # unset the app falls back to RENDER_EXTERNAL_URL, which Render
+      # injects automatically and which is always the real origin. Set it
+      # only for a custom domain — and if you do set it, it must be the
+      # exact origin the browser uses, scheme included. A stale localhost
+      # value here is worse than no value: Better Auth's origin check then
+      # rejects every sign-in and sign-up with "Invalid origin".
       - key: BETTER_AUTH_SECRET
         sync: false
-      - key: BETTER_AUTH_URL
-        sync: false
 
-      # Google OAuth. The authorized redirect URI in Google Cloud Console
-      # must be <BETTER_AUTH_URL>/api/auth/callback/google.
+      # Google OAuth. Both must be set or the "Continue with Google"
+      # button reports itself unavailable — email/password still works.
+      # The authorized redirect URI in Google Cloud Console must be
+      # <origin>/api/auth/callback/google.
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

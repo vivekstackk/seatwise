@@ -77,18 +77,26 @@ a missing variable fails the build rather than surfacing later.
 
 Two values must differ from local:
 
-- `BETTER_AUTH_URL` — the deployed origin. It also builds Stripe's
-  `success_url`, so localhost here sends paying customers to their own
-  machine.
+- `BETTER_AUTH_URL` — **leave it unset on Render.** The app falls back to
+  `RENDER_EXTERNAL_URL`, which Render injects and which is always the real
+  origin. Set it only for a custom domain, and then only to that exact
+  origin. A localhost value here is worse than nothing: Better Auth
+  rejects every sign-in and sign-up with `Invalid origin`, and because
+  server actions look up a session, seat holds fail too.
 - `STRIPE_WEBHOOK_SECRET` — the hosted endpoint's secret from the Stripe
   dashboard (add `<origin>/api/webhooks/stripe` as an endpoint for
   `checkout.session.completed`), not the CLI's.
 
-Google OAuth needs `<origin>/api/auth/callback/google` added as an
-authorized redirect URI.
+Google OAuth needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` set —
+with either missing, the provider is not registered and the "Continue
+with Google" button says so instead of failing obscurely. Email and
+password still work. Google Cloud Console needs
+`<origin>/api/auth/callback/google` as an authorized redirect URI.
 
 `GET /api/health` is the health check: no database, no Stripe, and it
-names any missing environment variable (never its value).
+names any missing environment variable (never its value). It also reports
+`authOrigin` — if that doesn't match the address in your browser, sign-in
+is broken and that is why.
 
 ### "Service waking up / application loading"
 

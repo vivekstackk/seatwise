@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db";
 import * as schema from "./db/schema";
+import { getAppOrigin, getTrustedOrigins } from "./appUrl";
 
 /**
  * Google is registered only when both credentials are present.
@@ -18,6 +19,15 @@ export const googleSignInEnabled = Boolean(
 );
 
 export const auth = betterAuth({
+  /**
+   * Resolved rather than read straight from BETTER_AUTH_URL. When that
+   * variable is missing or still points at localhost on a hosted deploy,
+   * Better Auth's origin check rejects every sign-in and sign-up with
+   * "Invalid origin" — and because server actions call getSession, seat
+   * holds fail too. See src/lib/appUrl.ts.
+   */
+  baseURL: getAppOrigin(),
+  trustedOrigins: getTrustedOrigins(),
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,

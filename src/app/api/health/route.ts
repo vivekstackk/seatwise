@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAppOrigin } from "@/lib/appUrl";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,11 +16,17 @@ export const dynamic = "force-dynamic";
  * It also reports which required environment variables are missing —
  * by name only, never by value — because the usual cause of a deploy
  * that boots but 500s on every page is one unset variable.
+ *
+ * `authOrigin` and `googleSignIn` are reported for the same reason.
+ * Those two are behind the failures that look nothing like a config
+ * problem from the outside: a wrong origin shows up as "Invalid origin"
+ * on sign-up, and absent Google credentials show up as a sign-in button
+ * that refuses. Comparing `authOrigin` against the address in the
+ * browser bar diagnoses the first in one glance.
  */
 const REQUIRED_ENV = [
   "DATABASE_URL",
   "BETTER_AUTH_SECRET",
-  "BETTER_AUTH_URL",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "TICKET_SIGNING_SECRET",
@@ -33,6 +40,16 @@ export async function GET() {
       ok: missingEnv.length === 0,
       uptimeSeconds: Math.round(process.uptime()),
       missingEnv,
+      authOrigin: getAppOrigin(),
+      authOriginSource: process.env.BETTER_AUTH_URL
+        ? "BETTER_AUTH_URL"
+        : process.env.RENDER_EXTERNAL_URL
+        ? "RENDER_EXTERNAL_URL"
+        : "localhost-fallback",
+      googleSignIn:
+        process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+          ? "configured"
+          : "disabled",
     },
     {
       status: missingEnv.length === 0 ? 200 : 503,

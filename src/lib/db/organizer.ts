@@ -22,8 +22,18 @@ import { getEventsByOrganizer, toEventView, type EventView } from "@/lib/db/even
  */
 const ORGANIZER_ROLES = new Set(["organizer", "admin"]);
 
+/** See the same helper in seats.ts — a rejected request must not read as a crash. */
+async function currentSession() {
+  try {
+    return await auth.api.getSession({ headers: await headers() });
+  } catch (err) {
+    console.error("Session lookup failed:", err);
+    return null;
+  }
+}
+
 async function requireOrganizerId(): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await currentSession();
 
   if (!session) {
     throw new Error("Not signed in");
@@ -41,7 +51,7 @@ async function requireOrganizerId(): Promise<string> {
 }
 
 export async function getOrganizerAccess() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await currentSession();
 
   if (!session) return { allowed: false as const, reason: "signed_out" as const };
 

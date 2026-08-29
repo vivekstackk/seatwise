@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
+import { getAppOrigin } from "@/lib/appUrl";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { events, orders, tickets } from "@/lib/db/schema";
@@ -17,8 +18,26 @@ import {
   checkInTicketCore,
 } from "@/lib/db/holds";
 
+/**
+ * Better Auth throws rather than returning null when the request is
+ * rejected before the session is even looked at — a mismatched origin
+ * being the common case. Left unhandled that surfaced as "Something went
+ * wrong holding that seat", which points the user at the seat map when
+ * the actual problem is that they are not authenticated. Failing closed
+ * to "no session" sends them to /login, which is both true and
+ * actionable; the cause is still logged for the server operator.
+ */
+async function currentSession() {
+  try {
+    return await auth.api.getSession({ headers: await headers() });
+  } catch (err) {
+    console.error("Session lookup failed:", err);
+    return null;
+  }
+}
+
 async function requireBuyerId(): Promise<string> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await currentSession();
   if (!session) {
     throw new Error("Not signed in");
   }
@@ -35,7 +54,7 @@ async function requireBuyerId(): Promise<string> {
 const STAFF_ROLES = new Set(["organizer", "staff", "admin"]);
 
 async function requireStaff(): Promise<{ id: string; role: string }> {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await currentSession();
   if (!session) {
     throw new Error("Not signed in");
   }
@@ -147,8 +166,8 @@ export async function createCheckout(eventId: string) {
       idempotencyKey,
       orderId,
     },
-    success_url: `${process.env.BETTER_AUTH_URL}/events/${eventId}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.BETTER_AUTH_URL}/events/${eventId}?payment=cancelled`,
+    success_url: `${getAppOrigin()}/events/${eventId}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${getAppOrigin()}/events/${eventId}?payment=cancelled`,
   });
 
   await db
@@ -321,7 +340,7 @@ export async function checkInTicket(qrToken: string) {
 
 /** Lets /checkin decide whether to render the scanner or a refusal. */
 export async function getCheckInAccess() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await currentSession();
 
   if (!session) return { allowed: false as const, reason: "signed_out" as const };
 
