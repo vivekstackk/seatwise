@@ -58,12 +58,17 @@ export async function GET() {
           ? "configured"
           : "disabled",
       googleRedirectUri: `${getAppOrigin()}/api/auth/callback/google`,
-      // Last six characters only — enough to confirm this deployment is
-      // using the same OAuth client you edited in the console, which is
-      // the other common cause of redirect_uri_mismatch: the URI was
-      // registered on a different client.
+      // Enough of the client ID to confirm this deployment is using the
+      // same OAuth client you edited in the console — the other common
+      // cause of redirect_uri_mismatch is the URI being registered on a
+      // different client. The `.apps.googleusercontent.com` suffix is
+      // stripped first: every client ID ends with it, so a plain tail
+      // distinguishes nothing.
       googleClientIdTail: process.env.GOOGLE_CLIENT_ID
-        ? `…${process.env.GOOGLE_CLIENT_ID.slice(-6)}`
+        ? `…${process.env.GOOGLE_CLIENT_ID.replace(
+            /\.apps\.googleusercontent\.com$/,
+            ""
+          ).slice(-6)}`
         : null,
     },
     {
