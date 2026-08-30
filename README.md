@@ -1,5 +1,7 @@
 # SeatWise
 
+[![CI](https://github.com/vivekstackk/seatwise/actions/workflows/ci.yml/badge.svg)](https://github.com/vivekstackk/seatwise/actions/workflows/ci.yml)
+
 Seat-level event ticketing. The core of it is a seat hold that only one
 buyer can ever win, proven by an automated concurrency test rather than
 by hoping.
