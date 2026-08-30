@@ -8371,7 +8371,623 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
-}       
+}
+
+/* =========================================================
+   ABOUT
+   Shares the /my-tickets palette on purpose — same ink,
+   same cream, same hairline rules — so a visitor arriving
+   from the menu doesn't feel like they changed websites.
+========================================================= */
+
+.about-page {
+  min-height: 100vh;
+  background: #10100f;
+  color: #f2f0e9;
+  padding: 0 5vw;
+}
+
+.about-header {
+  min-height: 390px;
+  padding: 48px 0 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-kicker,
+.about-header__right span {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.about-header h1 {
+  margin: 45px 0 0;
+  font-size: clamp(80px, 13vw, 190px);
+  line-height: 0.78;
+  font-weight: 400;
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+}
+
+.about-header h1 span {
+  color: #e77a35;
+}
+
+.about-header__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 22px;
+  padding-bottom: 5px;
+}
+
+.about-header__right a {
+  color: #f2f0e9;
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.4);
+  padding-bottom: 6px;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.about-header__right a:hover {
+  color: #e77a35;
+  border-color: #e77a35;
+}
+
+/* =========================================================
+   STATEMENT
+========================================================= */
+
+.about-statement {
+  padding: 90px 0 100px;
+  max-width: 1000px;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-statement__eyebrow {
+  display: block;
+  margin-bottom: 34px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  opacity: 0.55;
+}
+
+.about-statement__lead {
+  margin: 0 0 30px;
+  font-size: clamp(21px, 2.5vw, 34px);
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+}
+
+.about-statement__body {
+  margin: 0;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.75;
+  opacity: 0.62;
+}
+
+/* =========================================================
+   FIGURES
+========================================================= */
+
+.about-figures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-figure {
+  padding: 46px 0 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.about-figure + .about-figure {
+  padding-left: 34px;
+  border-left: 1px solid rgba(242, 240, 233, 0.12);
+}
+
+.about-figure strong {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: clamp(46px, 5vw, 68px);
+  line-height: 0.8;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+}
+
+.about-figure strong em {
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: #e77a35;
+}
+
+.about-figure span {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+/* =========================================================
+   BLOCKS
+========================================================= */
+
+.about-block {
+  padding: 95px 0 100px;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-block__head span {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.about-block__head h2 {
+  margin: 24px 0 60px;
+  font-size: clamp(34px, 4.6vw, 74px);
+  line-height: 0.92;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+}
+
+.about-block__head h2 span {
+  color: #e77a35;
+}
+
+/*
+ * Full-bleed inside a page that carries `padding: 0 5vw`: the negative
+ * margin cancels the page gutter so the cream panel reaches both edges,
+ * and the padding puts the text back on the same grid as every other
+ * section. Without this the light block would float as an inset card.
+ */
+.about-block--light {
+  margin: 0 -5vw;
+  padding: 95px 5vw 100px;
+  background: #ebe8df;
+  color: #11110f;
+  border-bottom: none;
+}
+
+.about-block--light .about-block__head span {
+  opacity: 0.5;
+}
+
+.about-block--light .about-block__head h2 span {
+  color: #d8763d;
+}
+
+/* =========================================================
+   CAPABILITY ROWS
+========================================================= */
+
+.about-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-row {
+  display: grid;
+  grid-template-columns: 90px 300px 1fr;
+  gap: 40px;
+  align-items: start;
+  padding: 36px 0;
+  border-top: 1px solid rgba(242, 240, 233, 0.14);
+}
+
+.about-row:last-child {
+  border-bottom: 1px solid rgba(242, 240, 233, 0.14);
+}
+
+.about-row__number {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  opacity: 0.4;
+  padding-top: 6px;
+}
+
+.about-row h3 {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 27px);
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.about-row p {
+  margin: 0;
+  max-width: 620px;
+  font-size: 14px;
+  line-height: 1.72;
+  opacity: 0.6;
+}
+
+/* =========================================================
+   STEPS
+========================================================= */
+
+.about-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 30px;
+}
+
+.about-step {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(17, 17, 15, 0.35);
+}
+
+.about-step__number {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: #d8763d;
+}
+
+.about-step strong {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.about-step p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.68;
+}
+
+/* =========================================================
+   ORGANISER
+========================================================= */
+
+.about-organiser {
+  min-height: 300px;
+  padding: 80px 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 50px;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-organiser span {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.about-organiser h2 {
+  margin: 24px 0 22px;
+  font-size: clamp(32px, 4vw, 60px);
+  line-height: 0.95;
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+/*
+ * `.about-organiser span` also matches the full stop inside the heading,
+ * which would render it at 11px next to 60px type. Inherit back.
+ */
+.about-organiser h2 span {
+  color: #e77a35;
+  font-size: inherit;
+  letter-spacing: inherit;
+  opacity: 1;
+}
+
+.about-organiser p {
+  margin: 0;
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.72;
+  opacity: 0.6;
+}
+
+.about-organiser__link {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  min-width: 250px;
+  padding: 20px 22px;
+  border: 1px solid rgba(242, 240, 233, 0.4);
+  color: #f2f0e9;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.about-organiser__link span {
+  color: #e77a35;
+  font-size: 16px;
+  opacity: 1;
+}
+
+.about-organiser__link:hover {
+  background: #f2f0e9;
+  color: #10100f;
+}
+
+.about-organiser__link:hover span {
+  color: #10100f;
+}
+
+/* =========================================================
+   STACK
+========================================================= */
+
+.about-stack {
+  padding: 80px 0 90px;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-stack__label {
+  display: block;
+  margin-bottom: 44px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.about-stack__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(242, 240, 233, 0.14);
+}
+
+.about-stack__item {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 26px 24px;
+  background: #10100f;
+}
+
+.about-stack__item strong {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.about-stack__item span {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+/* =========================================================
+   CLOSING CTA
+========================================================= */
+
+.about-cta {
+  min-height: 260px;
+  padding: 70px 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 40px;
+  border-bottom: 1px solid rgba(242, 240, 233, 0.18);
+}
+
+.about-cta > div > span {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.about-cta h2 {
+  margin: 22px 0 0;
+  font-size: clamp(38px, 5.5vw, 92px);
+  line-height: 0.9;
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  text-transform: uppercase;
+}
+
+.about-cta h2 span {
+  color: #e77a35;
+}
+
+.about-cta__button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  min-width: 240px;
+  padding: 20px 22px;
+  background: #f2f0e9;
+  color: #10100f;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.about-cta__button span {
+  color: #e77a35;
+  font-size: 16px;
+}
+
+.about-cta__button:hover {
+  background: #e77a35;
+  color: #10100f;
+}
+
+.about-cta__button:hover span {
+  color: #10100f;
+}
+
+.about-footer {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  opacity: 0.5;
+}
+
+/* =========================================================
+   ABOUT — TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+  .about-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The vertical rules only make sense across a single row. On two rows
+     the third cell starts a new row, so its left border would hang in
+     open space — redraw them per column instead. */
+  .about-figure + .about-figure {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .about-figure:nth-child(even) {
+    padding-left: 30px;
+    border-left: 1px solid rgba(242, 240, 233, 0.12);
+  }
+
+  .about-row {
+    grid-template-columns: 60px 1fr;
+    gap: 18px 24px;
+  }
+
+  .about-row p {
+    grid-column: 2;
+  }
+
+  .about-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px 30px;
+  }
+
+  .about-stack__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   ABOUT — MOBILE
+========================================================= */
+
+@media (max-width: 800px) {
+  .about-page {
+    padding: 0 20px;
+  }
+
+  .about-header {
+    min-height: 300px;
+    padding-top: 30px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  .about-header h1 {
+    margin-top: 40px;
+    font-size: clamp(58px, 17vw, 110px);
+  }
+
+  .about-header__right {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .about-statement,
+  .about-block {
+    padding: 66px 0 70px;
+  }
+
+  /*
+   * Must come after the `.about-block` rule above, not before it: both are
+   * single-class selectors, so the later one wins, and when this sat first
+   * the generic `padding: 66px 0 70px` zeroed the light panel's side
+   * padding and its text ran flush to both screen edges.
+   */
+  .about-block--light {
+    margin: 0 -20px;
+    padding: 70px 20px 80px;
+  }
+
+  .about-block__head h2 {
+    margin-bottom: 42px;
+  }
+
+  .about-organiser,
+  .about-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 34px;
+    padding: 60px 0;
+    min-height: 0;
+  }
+
+  .about-organiser__link,
+  .about-cta__button {
+    width: 100%;
+  }
+
+  .about-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 30px 0 40px;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .about-figures {
+    grid-template-columns: 1fr;
+  }
+
+  .about-figure:nth-child(even) {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .about-figure + .about-figure {
+    border-top: 1px solid rgba(242, 240, 233, 0.12);
+  }
+
+  .about-steps,
+  .about-stack__grid {
+    grid-template-columns: 1fr;
+  }
+}
+       
 
 
 

@@ -31,7 +31,10 @@ const baseMenuItems = [
   {
     number: "06",
     title: "About",
-    href: "#about",
+    // Was "#about", but no element on the home page ever carried that id,
+    // so the link resolved to nothing and the visitor stayed on the
+    // landing page wondering what happened. /about is a real route now.
+    href: "/about",
     meta: "Inside SeatWise",
   },
 ];
