@@ -1,190 +1,259 @@
-# SeatWise
+<div align="center">
+
+# 🎟️ SeatWise
+
+### Seat-Level Event Ticketing — Built for Concurrency
+
+A full-stack event ticketing & seat reservation platform where **only one buyer can ever win a seat**, proven by automated concurrency tests — not by hoping.
 
 [![CI](https://github.com/vivekstackk/seatwise/actions/workflows/ci.yml/badge.svg)](https://github.com/vivekstackk/seatwise/actions/workflows/ci.yml)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-black?logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Postgres](https://img.shields.io/badge/Neon_Postgres-4169E1?logo=postgresql&logoColor=white)](https://neon.tech/)
+[![Stripe](https://img.shields.io/badge/Stripe-Checkout-635BFF?logo=stripe&logoColor=white)](https://stripe.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Seat-level event ticketing. The core of it is a seat hold that only one
-buyer can ever win, proven by an automated concurrency test rather than
-by hoping.
+[**Live Demo →**](https://seatwise-r2jz.onrender.com)
 
-## Stack
+<br />
 
-- Next.js 16.3 (App Router, Turbopack). Note: `middleware.ts` is called
-  `proxy.ts` in this version — see `AGENTS.md`.
-- Neon serverless Postgres over the HTTP driver + Drizzle ORM. The HTTP
-  driver has **no transactions**, which is why the hold is written as a
-  single data-modifying CTE instead of a transaction.
-- Better Auth (email/password + Google), Stripe Checkout, HMAC-signed QR
-  tickets.
+<img src="public/demo-screenshot.png" alt="SeatWise — Event page with interactive seat map" width="800" />
 
-## Local setup
+</div>
+
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|---|---|
+| 🔒 **Concurrency-Safe Seat Holds** | Single data-modifying CTE guarantees exactly one buyer wins a seat — no transactions needed over Neon's HTTP driver |
+| 💳 **Stripe Checkout** | Seamless payment flow with idempotent fulfilment via both webhook (push) and polling (pull) paths |
+| 📱 **QR Ticket Check-In** | HMAC-signed QR codes with camera scanning at `/checkin` for event staff |
+| 🔐 **Auth (Email + Google)** | Better Auth with email/password and Google OAuth, role-based access control |
+| 🎭 **Role System** | `buyer` → `staff` → `organizer` → `admin` with granular permissions |
+| 🚀 **8-Seat Cap Enforcement** | Per-buyer seat limit enforced at the database level under concurrent requests |
+| 🛡️ **Smart Auth Gate** | Signed-out visitors see a login gate — not a cryptic error — with return-to-seat redirect |
+
+---
+
+## 🏗️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 16.3 (App Router, Turbopack) |
+| **UI** | React 19, Tailwind CSS |
+| **Language** | TypeScript 5 |
+| **Database** | Neon Serverless Postgres (HTTP driver) |
+| **ORM** | Drizzle ORM |
+| **Auth** | Better Auth (Email/Password + Google OAuth) |
+| **Payments** | Stripe Checkout + Webhooks |
+| **Deployment** | Render |
+
+---
+
+## 🏛️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Client (React 19)                    │
+│  Seat Map UI  ─►  Auth Gate  ─►  Stripe Checkout  ─►  QR   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ Server Actions
+┌──────────────────────────▼──────────────────────────────────┐
+│                   Next.js 16 App Router                     │
+│  ┌──────────┐  ┌────────────┐  ┌─────────────────────────┐ │
+│  │ Hold CTE │  │ Better Auth│  │ Stripe Webhook + Polling │ │
+│  │ (atomic) │  │ (sessions) │  │ (idempotent fulfilment) │ │
+│  └────┬─────┘  └─────┬──────┘  └───────────┬─────────────┘ │
+└───────┼──────────────┼──────────────────────┼───────────────┘
+        │              │                      │
+┌───────▼──────────────▼──────────────────────▼───────────────┐
+│              Neon Serverless Postgres (HTTP)                 │
+│         No transactions — single CTE per hold               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** ≥ 18
+- **Neon** database (free tier works)
+- **Stripe** account (test mode)
+- _(Optional)_ Google OAuth credentials
+
+### Installation
 
 ```bash
+# Clone the repo
+git clone https://github.com/vivekstackk/seatwise.git
+cd seatwise
+
+# Install dependencies
 npm install
-cp .env.local.example .env.local   # then fill it in
-npx drizzle-kit migrate            # needs DIRECT_DATABASE_URL
+
+# Set up environment variables
+cp .env.local.example .env.local
+# ✏️ Fill in your keys in .env.local
+
+# Run database migrations (requires DIRECT_DATABASE_URL)
+npx drizzle-kit migrate
+
+# Seed demo data (9 demo events)
 npm run db:seed
+
+# Start the dev server
 npm run dev
 ```
 
-Stripe webhooks locally:
+### Stripe Webhooks (Local)
 
 ```bash
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-Copy the `whsec_…` it prints into `STRIPE_WEBHOOK_SECRET`. It changes
-every time `stripe listen` restarts, and a stale value makes the webhook
-reject every event — payment succeeds and no ticket is ever issued.
+> [!WARNING]
+> Copy the `whsec_…` secret it prints into `STRIPE_WEBHOOK_SECRET` in your `.env.local`.
+> It **changes every time** `stripe listen` restarts — a stale value silently rejects all webhook events.
 
-### When a payment leaves no ticket
+---
 
-The webhook is not the only way an order gets fulfilled. Returning from
-Checkout, and loading `/my-tickets`, both ask Stripe directly whether the
-session was paid and issue the tickets on the spot — so a missing
-listener, an unregistered endpoint or a stale `whsec_…` no longer means a
-paid order with no ticket. Fulfilment is idempotent, so the push and pull
-paths can race harmlessly.
-
-Register the webhook anyway: it is the fast path, and the pull only runs
-while someone is looking.
-
-If the payment genuinely has not cleared, the drawer stops on a "PAYMENT
-TAKEN / YOUR TICKET ISN'T ISSUED YET" panel with the order reference and
-a CHECK AGAIN button, rather than an animation that never ends.
-
-One case fulfilment refuses: a seat that has since been ticketed on
-another order. That happens when an old order was paid, never fulfilled,
-its hold expired, and the seat was resold. Issuing there would put two
-valid tickets on one seat, so the order is left `pending` and logged as
-`seat_conflict` — an oversell to settle out of band, which is why the
-guard exists rather than a second ticket.
-
-## Booking without an account
-
-Clicking a seat while signed out opens a sign-in gate over the seat map —
-not an error. `holdSeats` and `createCheckout` **return** `{ needsAuth:
-true }` rather than throwing, because Next redacts server-action error
-messages in a production build: the drawer used to compare
-`err.message === "Not signed in"`, which worked in `next dev` and never
-once worked on the deployed site, so every signed-out visitor got
-"Something went wrong holding that seat." Being signed out is an
-ordinary outcome, so it travels as data and survives the boundary.
-
-The gate links to `/login?next=/events/<id>`, and `/login` honours
-`?next=` (same-origin paths only — an absolute or protocol-relative value
-is ignored, since an open redirect on a page that just asked for a
-password is a phishing primitive) plus `?mode=signup`, so the visitor
-lands back on the seat they were reaching for.
-
-## Verification
+## ✅ Verification
 
 ```bash
+# THE most important test — run after any change to src/lib/db/holds.ts
 npm run test:concurrency
 ```
 
-This is the most important check in the project. It fires 20 parallel
-holds at one seat ten times over (exactly one must win each time),
-proves the 8-seat-per-buyer cap holds under parallel requests, and
-proves a release frees the seat for someone else while ignoring a
-release requested by a non-owner. Re-run it after **any** change to
-`src/lib/db/holds.ts`.
+This fires **20 parallel holds** at one seat, **ten times over**:
+- ✅ Exactly one buyer wins each time
+- ✅ 8-seat-per-buyer cap holds under concurrent requests
+- ✅ Release frees the seat for others; non-owner releases are ignored
 
 ```bash
+# Build & lint checks
 npm run build
 npm run lint
 ```
 
-## Roles
+---
 
-There is no self-service role promotion, because organizer also carries
-gate check-in rights. Roles are granted out of band:
+## 👥 Roles & Permissions
+
+| Role | Permissions |
+|---|---|
+| `buyer` _(default)_ | Browse events, book seats, view tickets |
+| `staff` | All buyer permissions + check-in tickets at `/checkin` |
+| `organizer` | All staff permissions + manage own events at `/organizer` |
+| `admin` | Full access to everything |
 
 ```bash
+# Grant a role (no self-service promotion by design)
 npm run set-role -- someone@example.com organizer
 ```
 
-`buyer` (default) books seats. `staff` can check tickets in at
-`/checkin`. `organizer` can do that plus manage its own events at
-`/organizer`. `admin` is both.
+> The nine seeded demo events have a null `organizer_id` on purpose — they are fixtures and are not editable through the organizer UI.
 
-The nine seeded demo events have a null `organizer_id` on purpose — they
-are fixtures, so they are not editable through the organizer UI.
+---
 
-## Deploying (Render)
+## 🌐 Deployment (Render)
 
-`render.yaml` records the build/start commands and the full environment
-variable list. Set every `sync: false` variable in the dashboard before
-deploying: the build itself imports the database and Stripe clients, so
-a missing variable fails the build rather than surfacing later.
-
-Migrations are not run by the build. Apply them yourself against
-whatever database Render's `DATABASE_URL` points at — with
-`DIRECT_DATABASE_URL` set to that database's unpooled string — before
-the first deploy and after any schema change:
+The included [`render.yaml`](render.yaml) has the build/start commands and environment variable list.
 
 ```bash
+# Run migrations before first deploy and after any schema change
 npx drizzle-kit migrate
 ```
 
-Skipping this fails in ways that don't look like a missing migration.
-Better Auth validates its tables against the Drizzle schema at runtime,
-so one absent column takes out only the feature that touches it: a
-`verification` table without `updated_at` breaks Google sign-in with a
-500 while email/password keeps working, and an `account` table without
-`scope` / `access_token_expires_at` / `refresh_token_expires_at` is worse
-than that — Google succeeds, comes back, and silently creates no account,
-because the adapter's error is swallowed and reported as
-`unable_to_create_user`. Those three columns land in `0003`.
+> [!IMPORTANT]
+> Set **all** `sync: false` variables in the Render dashboard before deploying — the build imports DB and Stripe clients, so missing variables fail the build.
 
-Two values must differ from local:
+<details>
+<summary><strong>🔧 Deployment Configuration Details</strong></summary>
 
-- `BETTER_AUTH_URL` — **leave it unset on Render.** The app falls back to
-  `RENDER_EXTERNAL_URL`, which Render injects and which is always the real
-  origin. Set it only for a custom domain, and then only to that exact
-  origin. A localhost value here is worse than nothing: Better Auth
-  rejects every sign-in and sign-up with `Invalid origin`, and because
-  server actions look up a session, seat holds fail too.
-- `STRIPE_WEBHOOK_SECRET` — the hosted endpoint's secret from the Stripe
-  dashboard (add `<origin>/api/webhooks/stripe` as an endpoint for
-  `checkout.session.completed`), not the CLI's.
+<br />
 
-Google OAuth needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` set —
-with either missing, the provider is not registered and the "Continue
-with Google" button says so instead of failing obscurely. Email and
-password still work. Google Cloud Console needs
-`<origin>/api/auth/callback/google` as an authorized redirect URI.
+#### Environment Variables to Adjust
 
-A first Google sign-in creates the user from the Google profile: `name`
-and `image` come from Google's userinfo response, `email_verified` from
-Google, and `role` defaults to `buyer`. `/account` shows the Google
-picture when there is one and falls back to initials. A failure inside
-the callback now returns to `/login?error=<code>` and the form prints the
-code, rather than landing on Better Auth's own error page.
+| Variable | Notes |
+|---|---|
+| `BETTER_AUTH_URL` | Leave **unset** on Render (falls back to `RENDER_EXTERNAL_URL`). Set only for custom domains. A `localhost` value here breaks all sign-in/sign-up with `Invalid origin`. |
+| `STRIPE_WEBHOOK_SECRET` | Use the **hosted endpoint** secret from Stripe dashboard (not the CLI secret). Register `<origin>/api/webhooks/stripe` for `checkout.session.completed`. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Required for Google OAuth. Without them, the button shows a friendly message instead of failing. Register `<origin>/api/auth/callback/google` as an authorized redirect URI. |
 
-`GET /api/health` is the health check: no database, no Stripe, and it
-names any missing environment variable (never its value). It also reports
-`authOrigin` — if that doesn't match the address in your browser, sign-in
-is broken and that is why — and `googleRedirectUri`, the exact string
-sent to Google. `Error 400: redirect_uri_mismatch` means that string is
-not registered verbatim under **Authorized redirect URIs** on the OAuth
-client named by `GOOGLE_CLIENT_ID`; paste it from here rather than
-retyping it, and note that "Authorized JavaScript origins" is a different
-field that does not satisfy it.
+#### Migration Gotchas
 
-### "Service waking up / application loading"
+Skipping migrations fails in non-obvious ways. Better Auth validates tables at runtime — a `verification` table without `updated_at` breaks Google sign-in with a 500, while an `account` table missing `scope` / `access_token_expires_at` / `refresh_token_expires_at` silently fails to create accounts (`unable_to_create_user`). These columns land in migration `0003`.
 
-On Render's free plan the instance is spun down after ~15 minutes idle
-and that interstitial is served while it cold-starts, which takes up to
-about a minute. It is the plan's behavior, not a fault — but if it never
-resolves, check `/api/health` and the deploy logs, in that order. A
-paid instance, or an external uptime ping, removes the spin-down.
+#### Health Check
 
-Camera QR scanning at `/checkin` needs a secure context: it works on the
-deployed HTTPS origin and on `localhost`, and not over a plain-HTTP LAN
-address.
+`GET /api/health` reports missing env vars (never values), `authOrigin`, and `googleRedirectUri` to help diagnose config issues. If `authOrigin` doesn't match your browser's address bar, sign-in is broken.
 
-## Out of scope
+#### Fulfilment Safety
 
-Cancellations and refunds. A ticket can be voided in the database
-(`status = 'cancelled'`, which check-in refuses distinctly from "already
-used"), but there is no refund flow.
+Fulfilment is **idempotent** — the webhook (push) and client-side polling (pull) paths can race harmlessly. If a seat was already ticketed on another order (hold expired and seat was resold), the order stays `pending` and is logged as `seat_conflict` to be resolved out of band.
+
+#### Cold Starts
+
+On Render's free plan, the instance spins down after ~15 min idle. Cold start takes ~1 minute. A paid instance or external uptime ping removes this.
+
+#### QR Scanner
+
+Camera scanning at `/checkin` requires a secure context — works on HTTPS and `localhost`, not over plain-HTTP LAN addresses.
+
+#### Out of Scope
+
+Cancellations and refunds. A ticket can be voided in the database (`status = 'cancelled'`, which check-in refuses distinctly from "already used"), but there is no refund flow.
+
+</details>
+
+---
+
+## 📁 Project Structure
+
+```
+seatwise/
+├── src/
+│   ├── app/            # Next.js App Router pages & API routes
+│   ├── components/     # React components (seat map, auth gate, etc.)
+│   └── lib/
+│       ├── db/         # Drizzle schema, hold CTE, seeds, concurrency test
+│       ├── auth/       # Better Auth configuration
+│       └── stripe/     # Stripe checkout & webhook handlers
+├── drizzle/            # SQL migration files
+├── public/             # Static assets
+├── render.yaml         # Render deployment config
+└── AGENTS.md           # AI agent instructions
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Run the concurrency test suite (`npm run test:concurrency`)
+4. Ensure build and lint pass (`npm run build && npm run lint`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [vivekstackk](https://github.com/vivekstackk)**
+
+[⬆ Back to Top](#-seatwise)
+
+</div>
