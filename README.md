@@ -252,7 +252,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 <div align="center">
 
-**Built with ❤️ by [vivekstackk](https://github.com/vivekstackk)**
+
 
 [⬆ Back to Top](#-seatwise)
 
